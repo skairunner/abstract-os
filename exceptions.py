@@ -4,3 +4,7 @@ class SimulatorException(Exception):
 
 class AddressInvalid(SimulatorException):
     pass
+
+
+class PageDoesntExist(SimulatorException):
+    pass

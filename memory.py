@@ -19,9 +19,3 @@ class PhysicalMemory:
 
     def free(self, addr):
         self.free_page(self.freelist, addr)
-
-
-class Page:
-    def __init__(self, data, addr):
-        self.data = data
-        self.addr = addr
