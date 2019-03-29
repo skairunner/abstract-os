@@ -15,16 +15,19 @@ class PageManager:
         self.mem = mem
         self.uid_count = 0
         self.handle_pagefault = algo.handle_pagefault
+        self.on_page_created = algo.on_page_created
         self.userstate = algo.initialize_pagemanager_state()
 
     def make_page(self, data):
         self.pages.append(Page(self.uid_count, data, self.mem.alloc(data)))
+        self.on_page_created(self.uid_count, self.userstate)
         self.uid_count += 1
         return self.pages[-1]
 
     def load_page(self, pageid):
         page = self.pages[pageid]
         page.addr = self.mem.alloc(page.data)
+        return page.addr
 
     def evict_page(self, pageid):
         page = self.pages[pageid]
@@ -35,4 +38,4 @@ class PageManager:
         # Check if page exists
         if pageid >= len(self.pages):
             raise exceptions.PageDoesntExist(f"Page {pageid} doesn't exist.")
-        return self.handle_pagefault(pageid, self.userstate, self.load_page, self.evict_page)
+        return self.handle_pagefault(pageid, self.userstate, self.load_page, self.evict_page, self.mem.framecount)
