@@ -1,4 +1,5 @@
 import algorithms as algo
+from copy import deepcopy
 import exceptions
 
 
@@ -7,6 +8,9 @@ class Page:
         self.uid = uid
         self.data = data
         self.addr = addr  # If addr is None, it is paged out onto disk
+
+    def __deepcopy__(self):
+        return Page(self.uid, self.data, self.addr)
 
 
 class PageManager:
@@ -17,6 +21,14 @@ class PageManager:
         self.handle_pagefault = algo.handle_pagefault
         self.on_page_created = algo.on_page_created
         self.userstate = algo.initialize_pagemanager_state()
+
+    def __deepcopy__(self):
+        pm = PageManager(deepcopy(self.mem))
+        pm.pages = deepcopy(self.pages)
+        pm.uid_count = self.uid_count
+        pm.handle_pagefault = self.handle_pagefault
+        pm.on_page_created = self.on_page_created
+        return pm
 
     def make_page(self, data):
         self.pages.append(Page(self.uid_count, data, self.mem.alloc(data)))
