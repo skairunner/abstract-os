@@ -17,6 +17,12 @@ class PhysicalMemory:
         mem.free_page = self.free_page
         return mem
 
+    def get(self, addr):
+        return self.state[addr]
+
+    def set(self, addr, data):
+        self.state[addr] = data
+
     def alloc(self, data):
         addr = self.allocate_page(self.freelist)
         try:

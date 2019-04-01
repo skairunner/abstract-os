@@ -33,10 +33,10 @@ a page to evict.
 :param load_page: The function to call to load a page. load_page(pageid); returns the address of the loaded page
 :param evict_page: The function to call to evict a page. evict_page(pageid)
 :param mem_size: How many pages can fit into memory at once.
-
-:returns: The address of the newly-loaded page.
 """
-def handle_pagefault(pageid, state, load_page, evict_page, mem_size):
+def handle_pagefault(pageid, state, evict_page, mem_size):
+    if len(state) < mem_size:  # If there's free memory, just load
+        return
+    # otherwise, evict & load
     to_evict = state.pop(0)  # FIFO
     evict_page(to_evict)
-    return load_page(pageid)
