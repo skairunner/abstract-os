@@ -13,6 +13,9 @@ class Page:
 
 
 class PageManager:
+    """
+    :param mem: a PhysicalMemory for the PageManager to use.
+    """
     def __init__(self, mem):
         self.pages = []
         self.slots = {}  # Where data will be evicted to.

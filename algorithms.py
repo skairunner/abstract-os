@@ -16,9 +16,17 @@ Update the freelist so you know that you've freed this memory.
 def free_page(freelist, addr):
     pass
 
+"""
+What the 'state' param in on_page_created() should look like initially.
+Preferably only use Python built-in data types and list/set/dict.
+"""
 def initialize_pagemanager_state():
     return []
 
+"""
+Called after a page is created for the first time and its memory is allocated.
+The intention is for you to update your 'state' to keep track of evictees.
+"""
 def on_page_created(pageid, state):
     state.append(pageid)
 
