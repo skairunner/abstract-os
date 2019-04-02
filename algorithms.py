@@ -30,7 +30,6 @@ a page to evict.
 
 :param pageid: The number of the page to access.
 :param state: Your defined state. Must only use dicts, sets, lists and Python primitives.
-:param load_page: The function to call to load a page. load_page(pageid); returns the address of the loaded page
 :param evict_page: The function to call to evict a page. evict_page(pageid)
 :param mem_size: How many pages can fit into memory at once.
 """
