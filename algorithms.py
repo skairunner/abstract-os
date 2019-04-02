@@ -1,3 +1,4 @@
+from processstate import ProcessState
 """
 Use the freelist to find an unallocated block of memory and return its address.
 """
@@ -47,3 +48,18 @@ def handle_pagefault(pageid, state, evict_page, mem_size):
     # otherwise, evict & load
     to_evict = state.pop(0)  # FIFO
     evict_page(to_evict)
+
+def init_scheduler(scheduler):
+    scheduler.q = []
+
+def admit_process(scheduler, process):
+    scheduler.q.append(process)
+
+def pick_process(scheduler):
+    for process in scheduler.q:
+        if process.state == ProcessState.READY:
+            return process
+    return None
+
+def terminate_process(scheduler, process):
+    scheduler.q.remove(process)
