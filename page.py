@@ -25,15 +25,6 @@ class PageManager:
         self.on_page_created = algo.on_page_created
         self.userstate = algo.initialize_pagemanager_state()
 
-    def __deepcopy__(self):
-        pm = PageManager(deepcopy(self.mem))
-        pm.pages = deepcopy(self.pages)
-        pm.slots = deepcopy(self.slots)
-        pm.uid_count = self.uid_count
-        pm.handle_pagefault = self.handle_pagefault
-        pm.on_page_created = self.on_page_created
-        return pm
-
     def make_page(self, data):
         # Create a new page and return the Page object.
         pageid = self.uid_count

@@ -9,14 +9,6 @@ class PhysicalMemory:
         self.allocate_page = algo.allocate_page
         self.free_page = algo.free_page
 
-    def __deepcopy__(self):
-        mem = PhysicalMemory(self.framecount)
-        mem.state = self.state[:]
-        mem.freelist = self.freelist[:]
-        mem.allocate_page = self.allocate_page
-        mem.free_page = self.free_page
-        return mem
-
     def get(self, addr):
         return self.state[addr]
 

@@ -1,4 +1,7 @@
 from copy import deepcopy
+from memory import PhysicalMemory
+from page import PageManager
+from process import Scheduler
 
 
 """
@@ -8,12 +11,11 @@ a sim step's changes into a new SimState, then never edit it.
 """
 # Need to store simulation state for supporting rewinding
 class SimulationState:
-    def __init__(self, *, memorysize=100, time=0):
+    def __init__(self, *, memorysize=10, time=0):
         self.time = time
-
-    def __deepcopy__(self):
-        simstate = SimulationState(time=self.time)
-        return simstate
+        self.mem = PhysicalMemory(memorysize)
+        self.pagemngr = PageManager(self.mem)
+        self.sched = Scheduler()
 
 
 class Simulation:
