@@ -1,5 +1,6 @@
 import algorithms as algo
 import exceptions
+import json
 
 """
 Simulates physical memory.
@@ -52,3 +53,12 @@ class PhysicalMemory:
         # Upon mem free request, calls the free_page method
 
         self.free_page(self.freelist, addr)
+
+    def serialize(self):
+        # Return a JSON string that represents this object.
+        obj = {}
+        obj['objtype'] = 'mem'
+        obj['framecount'] = self.framecount
+        obj['memory'] = self.state
+        obj['freelist'] = self.freelist
+        return json.dumps(obj)

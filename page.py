@@ -1,6 +1,7 @@
 import algorithms as algo
 from copy import deepcopy
 import exceptions
+import json
 
 
 class Page:
@@ -8,9 +9,8 @@ class Page:
         self.uid = uid
         self.addr = addr  # If addr is None, it is paged out onto disk
 
-    def __deepcopy__(self):
-        return Page(self.uid, self.addr)
-
+    def serialize(self):
+        return json.dumps({'objtype': 'page', 'uid': self.uid, 'addr': self.addr})
 
 class PageManager:
     """
@@ -67,3 +67,10 @@ class PageManager:
             self.handle_pagefault(pageid, self.userstate, self.evict_page, self.mem.framecount)
             self.load_page(pageid)
         return self.pages[pageid].addr
+
+    def serialize(self):
+        obj = {}
+        obj['objtype'] = 'page_manager'
+        obj['pages'] = [x.serialize() for x in self.pages]
+        obj['slots'] = self.slots
+        return json.dumps(obj)
