@@ -1,7 +1,8 @@
 from copy import deepcopy
+import json
 from memory import PhysicalMemory
 from page import PageManager
-from process import Scheduler
+from process import Scheduler, Process
 
 
 """
@@ -16,20 +17,29 @@ class SimulationState:
         self.mem = PhysicalMemory(memorysize)
         self.pagemngr = PageManager(self.mem)
         self.sched = Scheduler()
+        self.pidcount = 0
+
+    def serialize(self):
+        obj = {}
+        obj['time'] = self.time
+        obj['mem'] = self.mem.serialize()
+        obj['pagemngr'] = self.pagemngr.serialize()
+        obj['scheduler'] = self.sched.serialize()
+        return obj
 
 
 class Simulation:
-    def __init__(self):
+    def __init__(self, *, memorysize=10):
         self.history = []
-        self.current = SimulationState()
+        self.current = SimulationState(memorysize=memorysize)
 
     def step(self):
         self.history.append(self.current)
         self.current = deepcopy(self.current)
         self.current.time += 1
+        self.current.sched.run(100, self.current.time)
 
-
-if __name__ == '__main__':
-    s = Simulation()
-    for i in range(10):
-        s.step()
+    def spawn_process(self, name):
+        state = self.current
+        p = Process(state.pagemngr, state.pidcount, name=name, spawned_at=state.time)
+        state.sched.admit(p)

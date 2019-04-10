@@ -5,28 +5,28 @@ from processstate import ProcessState
 
 
 class Process:
-    def __init__(self, pagemngr, pid, *, initial_pages=1, name=None, spawned=None):
+    def __init__(self, pagemngr, pid, *, initial_pages=1, name=None, spawned_at=None):
         self.pages = []
         for i in range(initial_pages):
             self.pages.append(pagemngr.make_page(7392))
         self.state = ProcessState.NEW
         self.pid = pid
         self.name = str(pid) if name is None else name
-        self.spawned = spawned  # What time the process was created
+        self.spawned_at = spawned_at  # What time the process was created
         self.ended = None  # What time the process was terminated
         self.extra = None
 
-        self.work = 100
+        self.work = 1000
         self.workdone = 0
 
     def run(self, time):
         if self.workdone + time >= self.work:
             self.state = ProcessState.EXIT
             leftover = time - (self.work - self.workdone)
-            self.work = self.workdone
+            self.workdone = self.work
             return leftover
         else:
-            self.work += time
+            self.workdone += time
             return 0
 
     def serialize(self):
@@ -36,10 +36,11 @@ class Process:
         obj['state'] = self.state.value
         obj['pid'] = self.pid
         obj['pages'] = [x.uid for x in self.pages]
-        obj['name'] = self.name
-        obj['spawned'] = self.spawned
+        obj['name'] = str(self.pid) if self.name is None else self.name
+        obj['spawned_at'] = self.spawned_at
         obj['ended'] = self.ended
-        return json.dumps(obj)
+        obj['workdone'] = self.workdone
+        return obj
 
 
 class Scheduler:
@@ -77,3 +78,7 @@ class Scheduler:
                 self.terminate_process(self, process)
                 process.state = ProcessState.DONE
                 process.ended = time
+
+    def serialize(self):
+        obj = {'processes': [x.serialize() for x in self.processes]}
+        return obj

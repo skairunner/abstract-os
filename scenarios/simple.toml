@@ -1,0 +1,12 @@
+[system]
+memory = 10
+
+[[run_once]]
+name = 'Phone Home'
+script = ''
+offset = 0
+
+[[run_once]]
+name = 'ifconfig'
+script = ''
+offset = 1

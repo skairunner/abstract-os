@@ -10,7 +10,7 @@ class Page:
         self.addr = addr  # If addr is None, it is paged out onto disk
 
     def serialize(self):
-        return json.dumps({'objtype': 'page', 'uid': self.uid, 'addr': self.addr})
+        return {'objtype': 'page', 'uid': self.uid, 'addr': self.addr}
 
 class PageManager:
     """
@@ -73,4 +73,5 @@ class PageManager:
         obj['objtype'] = 'page_manager'
         obj['pages'] = [x.serialize() for x in self.pages]
         obj['slots'] = self.slots
-        return json.dumps(obj)
+        # Do not serialize mem, because it's not 'owned' by PageManager.
+        return obj

@@ -1,0 +1,25 @@
+[system]
+memory = 10  # The amount of memory, in frames, the system has
+
+# Each double-bracketed run_once is a process that will be run once.
+[[run_once]]
+name = 'my process once'  # The name of the process. Optional, if omitted will display pid.
+script = 'scriptname.process'  # The script definition file for the process.
+offset = 10  # When to start the process, in ticks. Optional, default 0.
+
+# Each double-bracketed run_every is a process to be run at an interval.
+[[run_every]]
+name = 'my process every'
+script = 'scriptname.process'
+offset = 5  # When to start the first instance of this process. Optional, defaults to 0.
+interval = 10  # The interval, in ticks, between instancing this process.
+limit = 10  # Optional. If present, will only run up to limit times.
+
+# Run at random times. Can also be used to add 'jitter' to an interval process.
+[[run_rand]]
+name = 'my process random'
+script = 'scriptname.process'
+offset = 9 # As above.
+minimum = 1    # The minimum interval.
+maximum = 25   # The maximum interval.
+limit = 5  # As above.

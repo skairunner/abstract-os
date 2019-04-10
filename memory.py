@@ -61,4 +61,4 @@ class PhysicalMemory:
         obj['framecount'] = self.framecount
         obj['memory'] = self.state
         obj['freelist'] = self.freelist
-        return json.dumps(obj)
+        return obj
