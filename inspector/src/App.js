@@ -28,7 +28,8 @@ class App extends Component {
           width={100}
           height={50}
           padding_w={5}
-          padding_h={5}/>
+          padding_h={5}
+          caption='Test'/>
         <RWebSocket uri='ws://localhost:8765' onMessage={this.handleData}/>
       </div>
     );

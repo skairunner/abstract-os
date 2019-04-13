@@ -3,10 +3,11 @@ import * as d3scale from 'd3-scale';
 import * as d3shape from 'd3-shape';
 import './RelTrendline.css';
 
-/*
-props should include 'data' as an array of values from 0 to 1.
-Must also specify height/width. Other parameters are optional
-*/
+/**
+ * Draws a simple line graph for relative data.
+ * @param {list} data - The data to render.
+ * @param {string} [caption] - The title of the trendline.
+ * **/
 export default function RelTrendline(props) {
   // Destructuring to set defaults for missing values
   const {
@@ -31,12 +32,15 @@ export default function RelTrendline(props) {
     .y((d) => scaleY(d));
 
   return (
-  <svg width={props.width} height={props.height}>
-    <g transform={`translate(${padding_w}, ${padding_h})`}>
-      <line class='boundary' x1='0' y1='0' x2={limitX} y2='0' />
-      <line class='boundary' x1='0' y1={limitY} x2={limitX} y2={limitY} />
-      <path d={ line(props.data.slice(-10)) } fill='transparent' stroke={stroke} strokeWidth={stroke_width}/>
-    </g>
-  </svg>
+    <figure className='relTrendline'>
+      <svg width={props.width} height={props.height}>
+        <g transform={`translate(${padding_w}, ${padding_h})`}>
+          <line class='boundary' x1='0' y1='0' x2={limitX} y2='0' />
+          <line class='boundary' x1='0' y1={limitY} x2={limitX} y2={limitY} />
+          <path d={ line(props.data.slice(-10)) } fill='transparent' stroke={stroke} strokeWidth={stroke_width}/>
+        </g>
+      </svg>
+      <figcaption>{props.caption}</figcaption>
+    </figure>
   )
 }
