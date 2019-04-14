@@ -12,8 +12,9 @@ a sim step's changes into a new SimState, then never edit it.
 """
 # Need to store simulation state for supporting rewinding
 class SimulationState:
-    def __init__(self, *, memorysize=10, time=0):
-        self.time = time
+    def __init__(self, order, *, memorysize=10, time=0):
+        self.time = time  # The 'clock' of the simulation
+        self.order = order  # What step it is in the simulation. Used for Websockets.
         self.mem = PhysicalMemory(memorysize)
         self.pagemngr = PageManager(self.mem)
         self.sched = Scheduler()
@@ -21,6 +22,7 @@ class SimulationState:
 
     def serialize(self):
         obj = {}
+        obj['order'] = self.order
         obj['time'] = self.time
         obj['mem'] = self.mem.serialize()
         obj['pagemngr'] = self.pagemngr.serialize()
@@ -31,12 +33,13 @@ class SimulationState:
 class Simulation:
     def __init__(self, *, memorysize=10):
         self.history = []
-        self.current = SimulationState(memorysize=memorysize)
+        self.current = SimulationState(0, memorysize=memorysize)
 
     def step(self):
         self.history.append(self.current)
         self.current = deepcopy(self.current)
-        self.current.time += 1
+        self.current.order += 1
+        self.current.time += 100
         self.current.sched.run(100, self.current.time)
 
     def spawn_process(self, name):

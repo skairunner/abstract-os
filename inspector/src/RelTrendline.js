@@ -35,8 +35,8 @@ export default function RelTrendline(props) {
     <figure className='relTrendline'>
       <svg width={props.width} height={props.height}>
         <g transform={`translate(${padding_w}, ${padding_h})`}>
-          <line class='boundary' x1='0' y1='0' x2={limitX} y2='0' />
-          <line class='boundary' x1='0' y1={limitY} x2={limitX} y2={limitY} />
+          <line className='boundary' x1='0' y1='0' x2={limitX} y2='0' />
+          <line className='boundary' x1='0' y1={limitY} x2={limitX} y2={limitY} />
           <path d={ line(props.data.slice(-10)) } fill='transparent' stroke={stroke} strokeWidth={stroke_width}/>
         </g>
       </svg>
