@@ -15,8 +15,7 @@ class App extends Component {
     let results = JSON.parse(event.data);
     this.setState(oldstate => {
       let state = {...oldstate};
-      state.steps = state.steps.slice(0);
-      state.steps.push(...results);
+      state.steps = state.steps.concat(results);
       state.steps.sort(d => d.clock)
       return state;
     })
