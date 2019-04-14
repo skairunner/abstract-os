@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import './App.css';
 import RWebSocket from './RWebSocket';
 import RelTrendline from './RelTrendline';
+import OverviewChart from './OverviewChart';
 
 // Only returns elements that occured up to time ms ago
 function limit_by_time(source, time) {
@@ -20,7 +21,8 @@ class App extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      steps: []
+      steps: [],
+      is_on: -1,
     }
   }
 
@@ -30,6 +32,7 @@ class App extends Component {
       let state = {...oldstate};
       state.steps = state.steps.concat(results);
       state.steps.sort(d => d.clock)
+      state.is_on = state.steps.length - 1;
       return state;
     })
   }
@@ -53,6 +56,7 @@ class App extends Component {
           padding_w={5}
           padding_h={5}
           caption='Memory used'/>
+        <OverviewChart width={600} height={150} state={this.state.steps[this.state.is_on]} />
         <RWebSocket uri='ws://localhost:8765' onMessage={this.handleData}/>
       </div>
     );

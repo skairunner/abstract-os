@@ -2,13 +2,14 @@ import algorithms as algo
 from copy import deepcopy
 import json
 from processstate import ProcessState
+import random
 
 
 class Process:
     def __init__(self, pagemngr, pid, *, initial_pages=1, name=None, spawned_at=None):
         self.pages = []
         for i in range(initial_pages):
-            self.pages.append(pagemngr.make_page(7392))
+            self.pages.append(pagemngr.make_page(random.randint(0, 12)))
         self.state = ProcessState.NEW
         self.pid = pid
         self.name = str(pid) if name is None else name
