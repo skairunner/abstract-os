@@ -101,17 +101,24 @@ class ScenarioInstance:
 
     def step(self, steps):
         for i in range(steps):
-            t = self.simulation.current.time
+            t = self.simulation.current.clock
             # Find new processes, if needed, and insert
-            if t in self.insertbuffer:
-                processes = self.insertbuffer.pop(t)
+            to_pop = []
+            for key in sorted(self.insertbuffer.keys()):
+                # 'catch up' on missed process spawns
+                if key > t:
+                    break
+                processes = self.insertbuffer[key]
+                to_pop.append(key)
                 for process in processes:
                     # Spawn process
                     self.simulation.spawn_process(process.name)
                     # If need to add more, queue up.
-                    t = process.next()
-                    if t is not None:
-                        self.insertbuffer[t].append(process)
+                    next_t = process.next()
+                    if next_t is not None:
+                        self.insertbuffer[next_t].append(process)
+            for key in to_pop:
+                del self.insertbuffer[key]
             # Advance simulation
             self.simulation.step()
 
@@ -121,9 +128,9 @@ if __name__ == '__main__':
     import asyncio
 
     async def listen(websocket, path):
-        sim = ScenarioInstance(Scenario('simple'))
-        sim.step(10)
-        await websocket.send(sim.serialized(10))
+        sim = ScenarioInstance(Scenario('recurring'))
+        sim.step(100)
+        await websocket.send(sim.serialized(100))
         async for message in websocket:
             sim.step(1)
             await websocket.send(sim.serialized())

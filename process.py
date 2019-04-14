@@ -19,14 +19,14 @@ class Process:
         self.work = 1000
         self.workdone = 0
 
-    def run(self, time):
-        if self.workdone + time >= self.work:
+    def run(self, timestep):
+        if self.workdone + timestep >= self.work:
             self.state = ProcessState.EXIT
-            leftover = time - (self.work - self.workdone)
+            leftover = timestep - (self.work - self.workdone)
             self.workdone = self.work
             return leftover
         else:
-            self.workdone += time
+            self.workdone += timestep
             return 0
 
     def serialize(self):

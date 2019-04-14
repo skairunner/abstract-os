@@ -19,6 +19,7 @@ class PhysicalMemory:
 
         self.framecount = framecount
         self.state = [0 for x in range(framecount)]
+        self.in_use = 0  # How many frames are currently being used, via counting alloc/free calls
         self.freelist = []
         self.allocate_page = algo.allocate_page
         self.free_page = algo.free_page
@@ -41,6 +42,7 @@ class PhysicalMemory:
             self.state[addr] = data
         except IndexError:
             raise exceptions.AddressInvalid(f"Hardware error: memory panic @ {addr} (address doesn't exist)")
+        self.in_use += 1
         return addr
 
     """
@@ -53,6 +55,7 @@ class PhysicalMemory:
         # Upon mem free request, calls the free_page method
 
         self.free_page(self.freelist, addr)
+        self.in_use -= 1
 
     def serialize(self):
         # Return a JSON string that represents this object.
@@ -60,5 +63,6 @@ class PhysicalMemory:
         obj['objtype'] = 'mem'
         obj['framecount'] = self.framecount
         obj['memory'] = self.state
+        obj['in_use'] = self.in_use
         obj['freelist'] = self.freelist
         return obj
