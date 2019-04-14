@@ -13,12 +13,11 @@ class App extends Component {
 
   handleData = (event) => {
     let results = JSON.parse(event.data);
-    console.log(results)
     this.setState(oldstate => {
       let state = {...oldstate};
       state.steps = state.steps.slice(0);
       state.steps.push(...results);
-      state.steps.sort(d => d.order)
+      state.steps.sort(d => d.clock)
       return state;
     })
   }
