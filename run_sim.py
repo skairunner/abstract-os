@@ -129,8 +129,8 @@ if __name__ == '__main__':
 
     async def listen(websocket, path):
         sim = ScenarioInstance(Scenario('recurring'))
-        sim.step(100)
-        await websocket.send(sim.serialized(100))
+        sim.step(10)
+        await websocket.send(sim.serialized(10))
         async for message in websocket:
             sim.step(1)
             await websocket.send(sim.serialized())

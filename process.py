@@ -47,6 +47,7 @@ class Process:
 class Scheduler:
     def __init__(self):
         self.processes = []
+        self.term_procs = []
         self.admit_process = algo.admit_process
         self.pick_process = algo.pick_process
         self.terminate_process = algo.terminate_process
@@ -79,7 +80,10 @@ class Scheduler:
                 self.terminate_process(self, process)
                 process.state = ProcessState.DONE
                 process.ended = time
+                self.term_procs.append(process)
+                self.processes.remove(process)
 
     def serialize(self):
         obj = {'processes': [x.serialize() for x in self.processes]}
+        obj['term_procs'] = [x.serialize() for x in self.term_procs]
         return obj

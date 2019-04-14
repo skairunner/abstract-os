@@ -46,3 +46,4 @@ class Simulation:
         state = self.current
         p = Process(state.pagemngr, state.pidcount, name=name, spawned_at=state.time)
         state.sched.admit(p)
+        state.pidcount += 1
