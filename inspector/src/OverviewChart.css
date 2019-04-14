@@ -5,3 +5,7 @@
 .memory_bar {
   border: 1px solid black;
 }
+
+.Process>rect {
+  fill: #CCC;
+}

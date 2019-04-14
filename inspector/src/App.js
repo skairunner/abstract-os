@@ -56,7 +56,7 @@ class App extends Component {
           padding_w={5}
           padding_h={5}
           caption='Memory used'/>
-        <OverviewChart width={600} height={150} state={this.state.steps[this.state.is_on]} />
+        <OverviewChart width={600} height={600} state={this.state.steps[this.state.is_on]} />
         <RWebSocket uri='ws://localhost:8765' onMessage={this.handleData}/>
       </div>
     );
