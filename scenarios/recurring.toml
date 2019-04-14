@@ -11,7 +11,7 @@ name = 'ifconfig'
 script = ''
 offset = 1000
 
-[[run_once]]
+[[run_every]]
 name = 'ifconfig'
 script = ''
-offset = 1500
+interval = 2000

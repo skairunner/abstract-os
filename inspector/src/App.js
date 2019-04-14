@@ -3,6 +3,19 @@ import './App.css';
 import RWebSocket from './RWebSocket';
 import RelTrendline from './RelTrendline';
 
+// Only returns elements that occured up to time ms ago
+function limit_by_time(source, time) {
+  let end = source[source.length - 1].clock;
+  let i = source.length - 2;
+  for(; 0 < i; i--) {
+    if (end - source[i].clock > time) {
+      break;
+    }
+  }
+  return source.slice(i);
+}
+
+const TIMEWINDOW = 10000;
 class App extends Component {
   constructor(props) {
     super(props);
@@ -22,16 +35,24 @@ class App extends Component {
   }
 
   render() {
+    let memdata = [], memtimerange = [0, 1];
+    if (this.state.steps.length > 0) {
+      const last_10s = limit_by_time(this.state.steps, TIMEWINDOW);
+      memdata = last_10s.map(d => [d.clock, d.mem.in_use / d.mem.framecount]);
+      let end = memdata[memdata.length - 1][0];
+      memtimerange = [Math.max(0, end - TIMEWINDOW), Math.max(10000, end)];
+    }
     return (
       <div className="App">
         <br/>
         <RelTrendline
-          data={[0.1, 0.4, 0.3, 0.6, 0, 0.2]}
+          data={memdata}
+          domain={memtimerange}
           width={100}
           height={50}
           padding_w={5}
           padding_h={5}
-          caption='Test'/>
+          caption='Memory used'/>
         <RWebSocket uri='ws://localhost:8765' onMessage={this.handleData}/>
       </div>
     );

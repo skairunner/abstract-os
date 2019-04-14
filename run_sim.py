@@ -28,7 +28,7 @@ class RunEvery(Run):
         super().__init__(**kwargs)
 
     def next(self):
-        if self.count < self.limit:
+        if self.limit is None or self.count < self.limit:
             t = self.offset + self.interval * self.count
             self.count += 1
             return t
@@ -50,7 +50,7 @@ class RunRand(Run):
 
     # Increment the count and return what the next index should be. None if no more.
     def next(self):
-        if self.count < self.limit:
+        if self.limit is None or self.count < self.limit:
             self.ticksum += random.randint(self.minimum, self.maximum)
             self.count += 1
             return self.ticksum
