@@ -97,7 +97,11 @@ class ScenarioInstance:
         self.simulation = Simulation(memorysize=scenario.memory)
 
     def serialized(self, count=1):
-        return json.dumps([x.serialize() for x in self.simulation.history[-count:]])
+        history = []
+        if count > 1:
+            history = [x.serialize() for x in self.simulation.history[-count + 1:]]
+        history.append(self.simulation.current.serialize())
+        return json.dumps(history)
 
     def step(self, steps):
         for i in range(steps):
@@ -129,11 +133,12 @@ if __name__ == '__main__':
 
     async def listen(websocket, path):
         sim = ScenarioInstance(Scenario('recurring'))
-        sim.step(10)
-        await websocket.send(sim.serialized(10))
+        await websocket.send(sim.serialized())
         async for message in websocket:
-            sim.step(1)
-            await websocket.send(sim.serialized())
+            data = json.loads(message)
+            steps = data['steps']
+            sim.step(steps)
+            await websocket.send(sim.serialized(steps))
 
     asyncio.get_event_loop().run_until_complete(
         websockets.serve(listen, 'localhost', 8765))
