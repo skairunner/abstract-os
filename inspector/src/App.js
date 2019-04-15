@@ -45,7 +45,11 @@ class App extends Component {
     let results = JSON.parse(event.data);
     this.setState(oldstate => {
       let state = {...oldstate};
-      state.steps = state.steps.concat(results);
+      state.steps = oldstate.steps.slice(0);
+      for (let step of results) {
+        step.pagemngr.pages = step.pagemngr.pages.filter(d => !d.freed);
+        state.steps.push(step);
+      }
       state.steps.sort(d => d.clock)
       state.is_on = state.steps.length - 1;
       return state;

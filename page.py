@@ -8,9 +8,10 @@ class Page:
     def __init__(self, uid, addr):
         self.uid = uid
         self.addr = addr  # If addr is None, it is paged out onto disk
+        self.freed = False
 
     def serialize(self):
-        return {'objtype': 'page', 'uid': self.uid, 'addr': self.addr}
+        return {'objtype': 'page', 'uid': self.uid, 'addr': self.addr, 'freed': self.freed}
 
 class PageManager:
     """
@@ -23,6 +24,7 @@ class PageManager:
         self.uid_count = 0
         self.handle_pagefault = algo.handle_pagefault
         self.on_page_created = algo.on_page_created
+        self.on_page_freed = algo.on_page_freed
         self.userstate = algo.initialize_pagemanager_state()
 
     def make_page(self, data):
@@ -67,6 +69,12 @@ class PageManager:
             self.handle_pagefault(pageid, self.userstate, self.evict_page, self.mem.framecount)
             self.load_page(pageid)
         return self.pages[pageid].addr
+
+    def free_page(self, pageid):
+        page = self.pages[pageid]
+        self.mem.free(page.addr)
+        self.on_page_freed(pageid, self.userstate)
+        page.freed = True
 
     def serialize(self):
         obj = {}

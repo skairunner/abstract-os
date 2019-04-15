@@ -21,8 +21,8 @@ class PhysicalMemory:
         self.state = [0 for x in range(framecount)]
         self.in_use = 0  # How many frames are currently being used, via counting alloc/free calls
         self.freelist = []
-        self.allocate_page = algo.allocate_page
-        self.free_page = algo.free_page
+        self.allocate_memory = algo.allocate_memory
+        self.free_memory = algo.free_memory
 
     def get(self, addr):
         # Get the data at addr
@@ -37,7 +37,7 @@ class PhysicalMemory:
     def alloc(self, data):
         # Find an unused frame, set the data and return its address
 
-        addr = self.allocate_page(self.freelist)
+        addr = self.allocate_memory(self.freelist)
         try:
             self.state[addr] = data
         except IndexError:
@@ -54,7 +54,7 @@ class PhysicalMemory:
     def free(self, addr):
         # Upon mem free request, calls the free_page method
 
-        self.free_page(self.freelist, addr)
+        self.free_memory(self.freelist, addr)
         self.in_use -= 1
 
     def serialize(self):

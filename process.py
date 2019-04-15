@@ -8,6 +8,7 @@ import random
 class Process:
     def __init__(self, pagemngr, pid, *, initial_pages=1, name=None, spawned_at=None):
         self.pages = []
+        self.pagemngr = pagemngr
         for i in range(initial_pages):
             self.pages.append(pagemngr.make_page(random.randint(0, 12)))
         self.state = ProcessState.NEW
@@ -19,6 +20,11 @@ class Process:
 
         self.work = 1000
         self.workdone = 0
+
+    def free_memory(self):
+        for page in self.pages:
+            self.pagemngr.free_page(page.uid)
+        self.pages = []
 
     def run(self, timestep):
         if self.workdone + timestep >= self.work:
@@ -80,6 +86,7 @@ class Scheduler:
                 self.terminate_process(self, process)
                 process.state = ProcessState.DONE
                 process.ended = time
+                process.free_memory()
                 self.term_procs.append(process)
                 self.processes.remove(process)
 
