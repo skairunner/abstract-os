@@ -1,5 +1,5 @@
 [system]
-memory = 10
+memory = 20
 
 [[run_once]]
 name = 'Phone Home'

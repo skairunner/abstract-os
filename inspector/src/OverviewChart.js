@@ -92,7 +92,7 @@ function MemToPageLines(props) {
     let x0 = props.memory_scale(d.addr + .5);
     let y = scale(i + 0.5); // The height in the bundle of this line
     let x1 = props.page_scale(d.uid) + props.page_scale.bandwidth() / 2;
-    return (<path key={i} d={`M${x0},0 L${x0},${y} L${x1},${y} L${x1},${props.height}`} />);
+    return (<path key={d.uid} d={`M${x0},0 L${x0},${y} L${x1},${y} L${x1},${props.height}`} />);
   })
   return (
     <g className='MemPageLines' transform={`translate(0,${props.y})`}>
@@ -169,8 +169,12 @@ export default function OverviewChart(props) {
       }
     }
   }
-  // Add in pages that are in slots at the end
-  Object.keys(state.pagemngr.slots).forEach(key => page_uids.push(key));
+  // Insert all pages that don't have owners
+  state.pagemngr.pages.forEach(d => {
+    if (!did_put_page.has(d.uid)) {
+      page_uids.push(d.uid)
+    }
+  });
 
   // Add extra pages if needed, to have a minimum block width
   for (let i = 0; i <= 5 - page_uids.length; i++) {
