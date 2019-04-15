@@ -38,7 +38,7 @@ function Page(props) {
   return (
     <g className='Page' transform={`translate(${x}, 0)`}>
       <rect width={w} height={props.height}/>
-      <text x={3} y={18}>{props.page.uid}</text> 
+      <text x={3} y={18}>{props.page.uid}</text>
     </g>
   )
 }

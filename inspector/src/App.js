@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import { HotKeys } from "react-hotkeys";
 import ReconnectingWebSocket from 'reconnecting-websocket';
 import './App.css';
+import Debug from './DebugView';
 import RelTrendline from './RelTrendline';
 import OverviewChart from './OverviewChart';
 
@@ -103,11 +104,12 @@ class App extends Component {
       TO_END: e => this.step_to(this.state.steps.length - 1)
     }
 
+    const this_step = this.state.steps[this.state.is_on];
+
     return (
       <div className="App">
         <HotKeys keyMap={keyMap} handlers={handlers}>
           <span>Step: {this.state.is_on}</span>
-          <br/>
           <RelTrendline
             data={memdata}
             domain={memtimerange}
@@ -116,7 +118,8 @@ class App extends Component {
             padding_w={5}
             padding_h={5}
             caption='Memory used'/>
-          <OverviewChart width={600} height={600} state={this.state.steps[this.state.is_on]} />
+          <OverviewChart width={600} height={600} state={this_step} />
+          <Debug state={this_step} />
         </HotKeys>
       </div>
     );
