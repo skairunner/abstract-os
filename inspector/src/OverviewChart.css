@@ -6,14 +6,19 @@
   border: 1px solid black;
 }
 
-.Process>rect {
-  fill: #CCC;
-}
-
 .Page>rect {
   fill: #0CC;
 }
 
 .Page>text {
   fill: white;
+}
+
+.PageProcLines>line {
+  stroke: #000;
+  stroke-width: 1px;
+}
+
+.Process>rect {
+  fill: #CCC;
 }

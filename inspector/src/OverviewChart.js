@@ -57,7 +57,7 @@ function Process(props) {
 
 function Pages(props) {
   const pages = props.pagemngr.pages.map((d, i) => (
-    <Page key={i} page={d} scale={props.page_scale} height={props.height / 2} />
+    <Page key={i} page={d} scale={props.page_scale} height={props.height} />
   ))
   return (
     <g className='Pages' transform={`translate(0, ${props.y})`}>
@@ -68,12 +68,42 @@ function Pages(props) {
 
 function Processes(props) {
   const procs = props.processes.map(d => (
-    <Process key={d.pid} height={props.height / 2} process={d} scale={props.process_scale} />
+    <Process key={d.pid} height={props.height} process={d} scale={props.process_scale} />
   ))
 
   return (
     <g className='Processes' transform={`translate(0, ${props.y})`}>
       {procs}
+    </g>
+  )
+}
+
+function PageToProcLines(props) {
+  // First build a dictionary of processes.
+  // Build a page uid -> pid map
+  let pidFromUid = new Map();
+  for (let process of props.processes) {
+    for (let uid of process.pages) {
+      if (!pidFromUid.has(process)) {
+        pidFromUid.set(uid, process.pid);
+      }
+    }
+  }
+  // For each page, draw a line from the center of the page to the center of the process.
+  let lines = props.pagemngr.pages.map((d, i) => {
+    if (!pidFromUid.has(d.uid)) return null;
+    const pid = pidFromUid.get(d.uid);
+    let args = {
+      x1: props.page_scale(d.uid) + props.page_scale.bandwidth() / 2,
+      y1: props.vscale('page-proc'),
+      x2: props.process_scale(pid) + props.process_scale.bandwidth(pid) / 2,
+      y2: props.vscale('proc')
+    };
+    return(<line key={i} {...args}/>)
+  });
+  return (
+    <g className='PageProcLines'>
+      {lines}
     </g>
   )
 }
@@ -116,6 +146,9 @@ export default function OverviewChart(props) {
       }
     }
   }
+  // Add in pages that are in slots at the end
+  Object.keys(state.pagemngr.slots).forEach(key => page_uids.push(key));
+
   // Add extra pages if needed, to have a minimum block width
   for (let i = 0; i <= 5 - page_uids.length; i++) {
     page_uids.push('placeholder' + i);
@@ -125,22 +158,40 @@ export default function OverviewChart(props) {
       memory_scale.range())
     .paddingInner(0.05);
 
+  // Define a vertical scale to place the bar, bar-page lines, pages, page-process lines, and processes.
+  let vscale = proportionalScale([
+    ['mem', 6],
+    ['mem-page', 4],
+    ['page', 4],
+    ['page-proc', 1],
+    ['proc', 6]
+  ], [0, props.height]);
+
   return (
     <svg width={props.width} height={props.height}>
-      <MemoryBar mem={state.mem} memory_scale={memory_scale} height={limitY / 4} />
+      <MemoryBar
+        mem={state.mem}
+        memory_scale={memory_scale}
+        height={vscale.bandwidth('mem')} />
       <Pages
         processes={processes}
         pagemngr={state.pagemngr}
         page_scale={page_scale}
-        height={limitY / 4}
         memory_scale={memory_scale}
-        y={limitY / 4 * 1.1} />
+        height={vscale.bandwidth('page')}
+        y={vscale('page')} />
+      <PageToProcLines
+        processes={processes}
+        pagemngr={state.pagemngr}
+        page_scale={page_scale}
+        process_scale={process_scale}
+        vscale={vscale} />
       <Processes
         processes={processes}
         process_scale={process_scale}
-        height={limitY / 4}
         memory_scale={memory_scale}
-        y={limitY / 4 * 2} />
+        height={vscale.bandwidth('proc')}
+        y={vscale('proc')} />
     </svg>
   )
 }
