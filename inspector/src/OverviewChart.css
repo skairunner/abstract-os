@@ -6,6 +6,12 @@
   border: 1px solid black;
 }
 
+.MemPageLines > path {
+  stroke: #000;
+  stroke-width: 2px;
+  fill: none;
+}
+
 .Page>rect {
   fill: #0CC;
 }
@@ -16,7 +22,7 @@
 
 .PageProcLines>line {
   stroke: #000;
-  stroke-width: 1px;
+  stroke-width: 2px;
 }
 
 .Process>rect {

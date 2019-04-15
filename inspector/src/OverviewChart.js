@@ -78,6 +78,29 @@ function Processes(props) {
   )
 }
 
+// Draws vertical-flat-vertical shaped lines, where the flats are in a small area
+// and don't overlap.
+function MemToPageLines(props) {
+  const pages = props.pagemngr.pages;
+  const bundle_top = props.height * props.bundle_proportion / 2;
+  const bundle_bot = props.height * (1 - props.bundle_proportion / 2)
+  let scale = d3scale.scaleLinear([0, pages.length], [bundle_top, bundle_bot]);
+  let lines = pages.map((d, i) => {
+    if (d.addr === null) {
+      return null;
+    }
+    let x0 = props.memory_scale(d.addr + .5);
+    let y = scale(i + 0.5); // The height in the bundle of this line
+    let x1 = props.page_scale(d.uid) + props.page_scale.bandwidth() / 2;
+    return (<path key={i} d={`M${x0},0 L${x0},${y} L${x1},${y} L${x1},${props.height}`} />);
+  })
+  return (
+    <g className='MemPageLines' transform={`translate(0,${props.y})`}>
+      {lines}
+    </g>
+  );
+}
+
 function PageToProcLines(props) {
   // First build a dictionary of processes.
   // Build a page uid -> pid map
@@ -173,6 +196,14 @@ export default function OverviewChart(props) {
         mem={state.mem}
         memory_scale={memory_scale}
         height={vscale.bandwidth('mem')} />
+      <MemToPageLines
+        pagemngr={state.pagemngr}
+        page_scale={page_scale}
+        memory_scale={memory_scale}
+        height={vscale.bandwidth('mem-page')}
+        bundle_proportion = {0.4}
+        y={vscale('mem-page')}
+      />
       <Pages
         processes={processes}
         pagemngr={state.pagemngr}
