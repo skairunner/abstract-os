@@ -22,7 +22,11 @@ function limit_by_time(source, time) {
 
 const keyMap = {
   FORWARD: 'right',
-  BACKWARD: 'left'
+  BACKWARD: 'left',
+  FORWARD_FIVE: 'shift+right',
+  BACKWARD_FIVE: 'shift+left',
+  TO_END: ['command+right', 'ctrl+right'],
+  TO_START: ['command+left', 'ctrl+left'],
 }
 const TIMEWINDOW = 10000;
 
@@ -51,8 +55,9 @@ class App extends Component {
   do_step = (n) => {
     if (n > 0) {
       if (this.state.is_on + n >= this.state.steps.length) {
-        // If we're already on the last step, ask server to do a new step
-        this.rws.send('');
+        // If we're already on the last step, ask server to do new step(s)
+        n = this.state.is_on + n - this.state.steps.length + 1;
+        this.rws.send(`{"steps": ${n}}`);
       } else {
         // Otherwise advance the state.
         this.setState(oldstate => ({
@@ -69,6 +74,12 @@ class App extends Component {
     }
   }
 
+  step_to = (n) => {
+    if (0 <= n && n < this.state.steps.length) {
+      this.setState(oldstate => ({...oldstate, is_on: n}))
+    }
+  }
+
   render() {
     let memdata = [], memtimerange = [0, 1];
 
@@ -81,7 +92,11 @@ class App extends Component {
 
     const handlers = {
       FORWARD: e => this.do_step(1),
-      BACKWARD: e => this.do_step(-1)
+      BACKWARD: e => this.do_step(-1),
+      FORWARD_FIVE: e => this.do_step(5),
+      BACKWARD_FIVE: e => this.do_step(-5),
+      TO_START: e => this.step_to(0),
+      TO_END: e => this.step_to(this.state.steps.length - 1)
     }
 
     return (
