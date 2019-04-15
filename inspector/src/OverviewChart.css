@@ -9,3 +9,11 @@
 .Process>rect {
   fill: #CCC;
 }
+
+.Page>rect {
+  fill: #0CC;
+}
+
+.Page>text {
+  fill: white;
+}

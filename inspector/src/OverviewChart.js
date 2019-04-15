@@ -33,9 +33,12 @@ function MemoryBar(props) {
 }
 
 function Page(props) {
+  let x = props.scale(props.page.uid);
+  let w = props.scale.bandwidth();
   return (
-    <g className='Page'>
-      <rect />
+    <g className='Page' transform={`translate(${x}, 0)`}>
+      <rect width={w} height={props.height}/>
+      <text x={3} y={18}>{props.page.uid}</text> 
     </g>
   )
 }
@@ -52,25 +55,25 @@ function Process(props) {
   )
 }
 
-function ProcessesPages(props) {
-  // First define process's band. Divide horizontal space into minimum 5 areas.
-  const domain = props.processes.map(d => [d.pid, d.pages.length]);
-  const processcount = props.processes.reduce((a, d) => a + d.pages.length, 0)
-  if (processcount < 5) {
-    domain.push([`placeholder`, 5 - processcount]);
-  }
-
-  const process_scale = proportionalScale(domain, props.memory_scale.range()).paddingInner(0.05);
-  const procs = props.processes.map(d => (
-    <Process key={d.pid} height={props.height} process={d} scale={process_scale} />
-  ))
+function Pages(props) {
   const pages = props.pagemngr.pages.map((d, i) => (
-    <Page key={i} />
+    <Page key={i} page={d} scale={props.page_scale} height={props.height / 2} />
   ))
   return (
-    <g transform={`translate(0, ${props.y})`}>
-      <g>{pages}</g>
-      <g>{procs}</g>
+    <g className='Pages' transform={`translate(0, ${props.y})`}>
+      {pages}
+    </g>
+  )
+}
+
+function Processes(props) {
+  const procs = props.processes.map(d => (
+    <Process key={d.pid} height={props.height / 2} process={d} scale={props.process_scale} />
+  ))
+
+  return (
+    <g className='Processes' transform={`translate(0, ${props.y})`}>
+      {procs}
     </g>
   )
 }
@@ -86,20 +89,58 @@ export default function OverviewChart(props) {
   if (!state) {
     return null;
   }
+  const processes = state.scheduler.processes;
 
   const limitX = props.width - 2 * padding_w;
   const limitY = props.height - 2 * padding_h;
   const memory_scale = d3scale.scaleLinear([0, state.mem.framecount], [0, limitX]);
 
+  // First define process's band. Divide horizontal space into minimum 5 areas.
+  let processdomain = processes.map(d => [d.pid, d.pages.length]);
+  const processcount = processes.reduce((a, d) => a + d.pages.length, 0)
+  if (processcount < 5) {
+    processdomain.push([`placeholder`, 5 - processcount]);
+  }
+  const process_scale = proportionalScale(processdomain, memory_scale.range()).paddingInner(0.05);
+
+  // Next, determine the scale of the pages.
+  // Pages are located near the first process that 'owns' it. Essentially,
+  // sort the pages by the first process that claims it.
+  let page_uids = [];
+  let did_put_page = new Set();
+  for (let process of processes) {
+    for (let pageid of process.pages) {
+      if (!did_put_page.has(pageid)) {
+        did_put_page.add(pageid);
+        page_uids.push(pageid);
+      }
+    }
+  }
+  // Add extra pages if needed, to have a minimum block width
+  for (let i = 0; i <= 5 - page_uids.length; i++) {
+    page_uids.push('placeholder' + i);
+  }
+  let page_scale = d3scale.scaleBand(
+      page_uids,
+      memory_scale.range())
+    .paddingInner(0.05);
+
   return (
     <svg width={props.width} height={props.height}>
       <MemoryBar mem={state.mem} memory_scale={memory_scale} height={limitY / 4} />
-      <ProcessesPages
-        processes={state.scheduler.processes}
-        height={limitY / 4}
+      <Pages
+        processes={processes}
         pagemngr={state.pagemngr}
+        page_scale={page_scale}
+        height={limitY / 4}
         memory_scale={memory_scale}
         y={limitY / 4 * 1.1} />
+      <Processes
+        processes={processes}
+        process_scale={process_scale}
+        height={limitY / 4}
+        memory_scale={memory_scale}
+        y={limitY / 4 * 2} />
     </svg>
   )
 }
