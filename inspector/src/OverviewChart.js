@@ -1,11 +1,12 @@
 import React from 'react';
 import * as d3scale from 'd3-scale';
 import * as palettes from 'd3-scale-chromatic';
+import proportionalScale from './ProportionalScale';
 import './OverviewChart.css';
 
 function Frame(props) {
-  const x = props.memory_scale(props.addr);
-  const w = props.memory_scale(props.addr + 1) - x - 1;
+  const x = props.memory_scale(props.addr) + 1;
+  const w = props.memory_scale(props.addr + 1) - x - 2;
   const fill = props.data === 0 ? '#000' : palettes.schemeSet3[props.data % 12];
   return (
     <g transform={`translate(${x}, 0)`}>
@@ -41,7 +42,7 @@ function Page(props) {
 
 function Process(props) {
   let x = props.scale(props.process.pid);
-  let width = props.scale.bandwidth();
+  let width = props.scale.bandwidth(props.process.pid);
   return (
     <g className='Process' transform={`translate(${x}, 0)`}>
       <rect width={width} height={props.height} />
@@ -53,15 +54,13 @@ function Process(props) {
 
 function ProcessesPages(props) {
   // First define process's band. Divide horizontal space into minimum 5 areas.
-  const domain = props.processes.map(d => d.pid);
-  if (domain.length < 5) {
-    for (let i = 5 - domain.length; 0 < i; i--) {
-      domain.push(`invalid${i}`);
-    }
+  const domain = props.processes.map(d => [d.pid, d.pages.length]);
+  const processcount = props.processes.reduce((a, d) => a + d.pages.length, 0)
+  if (processcount < 5) {
+    domain.push([`placeholder`, 5 - processcount]);
   }
-  const process_scale = d3scale
-    .scaleBand(domain, props.memory_scale.range())
-    .paddingInner(0.05);
+
+  const process_scale = proportionalScale(domain, props.memory_scale.range()).paddingInner(0.05);
   const procs = props.processes.map(d => (
     <Process key={d.pid} height={props.height} process={d} scale={process_scale} />
   ))
@@ -70,8 +69,8 @@ function ProcessesPages(props) {
   ))
   return (
     <g transform={`translate(0, ${props.y})`}>
-      {pages}
-      {procs}
+      <g>{pages}</g>
+      <g>{procs}</g>
     </g>
   )
 }
