@@ -33,9 +33,12 @@ function MemoryBar(props) {
 }
 
 function Page(props) {
+  let x = props.scale(props.page.uid);
+  let w = props.scale.bandwidth();
   return (
-    <g className='Page'>
-      <rect />
+    <g className='Page' transform={`translate(${x}, 0)`}>
+      <rect width={w} height={props.height}/>
+      <text x={3} y={18}>{props.page.uid}</text> 
     </g>
   )
 }
@@ -62,15 +65,37 @@ function ProcessesPages(props) {
 
   const process_scale = proportionalScale(domain, props.memory_scale.range()).paddingInner(0.05);
   const procs = props.processes.map(d => (
-    <Process key={d.pid} height={props.height} process={d} scale={process_scale} />
+    <Process key={d.pid} height={props.height / 2} process={d} scale={process_scale} />
   ))
+
+  // Next, determine where to place pages.
+  // Pages are located near the first process that 'owns' it. Essentially,
+  // sort the pages by the first process that claims it.
+  let page_uids = [];
+  let did_put_page = new Set();
+  for (let process of props.processes) {
+    for (let pageid of process.pages) {
+      if (!did_put_page.has(pageid)) {
+        did_put_page.add(pageid);
+        page_uids.push(pageid);
+      }
+    }
+  }
+  // Add extra pages if needed, to have a minimum block width
+  for (let i = 0; i <= 5 - page_uids.length; i++) {
+    page_uids.push('placeholder' + i);
+  }
+  let page_scale = d3scale.scaleBand(
+      page_uids,
+      props.memory_scale.range())
+    .paddingInner(0.05);
   const pages = props.pagemngr.pages.map((d, i) => (
-    <Page key={i} />
+    <Page key={i} page={d} scale={page_scale} height={props.height / 2} />
   ))
   return (
     <g transform={`translate(0, ${props.y})`}>
-      <g>{pages}</g>
-      <g>{procs}</g>
+      <g className='Pages'>{pages}</g>
+      <g className='Processes' transform={`translate(0, ${props.height/2 + 5})`}>{procs}</g>
     </g>
   )
 }
