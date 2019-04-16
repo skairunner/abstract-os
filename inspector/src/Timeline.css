@@ -1,0 +1,21 @@
+.tick {
+  stroke: black;
+  stroke-width: 1px;
+}
+
+.main_scale {
+  stroke: black;
+  stroke-width: 2px;
+}
+
+.pip {
+  fill: #990000;
+}
+
+.clickable {
+  opacity: 0;
+}
+
+.axis {
+  user-select: none;
+}

@@ -5,6 +5,7 @@ import './App.css';
 import Debug from './DebugView';
 import RelTrendline from './RelTrendline';
 import OverviewChart from './OverviewChart';
+import Timeline from './Timeline';
 
 // Only returns elements that occured up to time ms ago
 function limit_by_time(source, time) {
@@ -119,6 +120,12 @@ class App extends Component {
             padding_h={5}
             caption='Memory used'/>
           <OverviewChart width={600} height={600} state={this_step} />
+          <Timeline
+            steps={this.state.steps}
+            width={600}
+            height={40}
+            this_step={this.state.steps[this.state.is_on]}
+            step_to={this.step_to} />
           <Debug state={this_step} />
         </HotKeys>
       </div>

@@ -7991,6 +7991,11 @@ react-app-polyfill@^0.2.2:
     raf "3.4.1"
     whatwg-fetch "3.0.0"
 
+react-d3-axis@^0.1.1:
+  version "0.1.1"
+  resolved "https://registry.yarnpkg.com/react-d3-axis/-/react-d3-axis-0.1.1.tgz#de890587645e46b1c286314c4f352ebb94f5c522"
+  integrity sha1-3okFh2ReRrHChjFMTzUuu5T1xSI=
+
 react-dev-utils@^8.0.0:
   version "8.0.0"
   resolved "https://registry.yarnpkg.com/react-dev-utils/-/react-dev-utils-8.0.0.tgz#7c5b227a45a32ea8ff7fbc318f336cf9e2c6e34c"
