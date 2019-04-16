@@ -9,7 +9,7 @@ import Timeline from './Timeline';
 
 // Only returns elements that occured up to time ms ago
 function limit_by_time(source, time) {
-  if (source.length == 0) {
+  if (source.length === 0) {
     return [];
   }
   let end = source[source.length - 1].clock;
@@ -92,7 +92,7 @@ class App extends Component {
     if (this.state.steps.length > 0) {
       const last_10s = limit_by_time(this.state.steps.slice(0, this.state.is_on), TIMEWINDOW);
       memdata = last_10s.map(d => [d.clock, d.mem.in_use / d.mem.framecount]);
-      let end = memdata.length == 0 ? 0 : memdata[memdata.length - 1][0];
+      let end = memdata.length === 0 ? 0 : memdata[memdata.length - 1][0];
       memtimerange = [Math.max(0, end - TIMEWINDOW), Math.max(10000, end)];
     }
 

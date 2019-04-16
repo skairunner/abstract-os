@@ -32,7 +32,7 @@ export function generate_mempattern(w, h, seed, pixelsize=5) {
   }
 
   // Special case seed == 0, just fill it with true
-  if (seed == 0)
+  if (seed === 0)
     smallpixels.fill(true);
 
   // for debug purposes

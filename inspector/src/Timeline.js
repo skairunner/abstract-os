@@ -5,7 +5,7 @@ import {get_rel_coords} from './utilities'
 import './Timeline.css';
 
 function get_tickvals(steps, n) {
-  if (steps.length == 0) {
+  if (steps.length === 0) {
     return []
   }
   if (steps.length <= n) {
@@ -57,7 +57,7 @@ export default function Timeline(props) {
     padding_w = 15
   } = props;
 
-  if (props.steps.length == 0) {
+  if (props.steps.length === 0) {
     return null;
   }
 
@@ -67,7 +67,7 @@ export default function Timeline(props) {
   let tickvals = get_tickvals(props.steps, 5);
 
   const callback = e => {
-    if(e.buttons != 1) {
+    if(e.buttons !== 1) {
       return;
     }
     let x = get_rel_coords(e).x;
