@@ -1,17 +1,17 @@
 import React from 'react';
 import * as d3scale from 'd3-scale';
-import * as palettes from 'd3-scale-chromatic';
 import proportionalScale from './ProportionalScale';
+import {generate_mempattern} from './utilities';
 import './OverviewChart.css';
 
 function Frame(props) {
   const x = props.memory_scale(props.addr) + 1;
-  const w = props.memory_scale(props.addr + 1) - x - 2;
-  const fill = props.data === 0 ? '#000' : palettes.schemeSet3[props.data % 12];
+  const w = props.memory_scale(props.addr + 1) - x - 1;
+  const imgurl = generate_mempattern(w, props.height, props.data, 5);
   return (
     <g transform={`translate(${x}, 0)`}>
-      <rect className='Frame' width={w} height={props.height} fill={fill} />
-      <text x={w / 2} y={props.height / 2} fill='white' textAnchor='middle'>{props.data}</text>
+      <image width={w} height={props.height} xlinkHref={imgurl} />
+      <text x={w / 2} y={props.height / 2} fill='black' textAnchor='middle'>{props.data}</text>
     </g>
   )
 }
@@ -27,6 +27,7 @@ function MemoryBar(props) {
   ));
   return (
     <g className='memory_bar'>
+      <rect width={props.memory_scale.range()[1]} height={props.height} />
       {frames}
     </g>
   )
@@ -132,6 +133,7 @@ function PageToProcLines(props) {
 }
 
 export default function OverviewChart(props) {
+  generate_mempattern(5, 5, 0, 1);
   // Destructuring to set defaults for missing values
   const {
     padding_h = 0,

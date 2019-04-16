@@ -10,7 +10,7 @@ class Process:
         self.pages = []
         self.pagemngr = pagemngr
         for i in range(initial_pages):
-            self.pages.append(pagemngr.make_page(random.randint(0, 12)))
+            self.pages.append(pagemngr.make_page(random.randint(0, 1000)))
         self.state = ProcessState.NEW
         self.pid = pid
         self.name = str(pid) if name is None else name

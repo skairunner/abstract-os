@@ -1,7 +1,7 @@
 import React from 'react';
 import * as d3scale from 'd3-scale';
 import {Axis} from 'react-d3-axis';
-import get_rel_coords from './utilities'
+import {get_rel_coords} from './utilities'
 import './Timeline.css';
 
 function get_tickvals(steps, n) {
