@@ -47,17 +47,19 @@ export function generate_mempattern(w, h, seed, pixelsize=5) {
   canvas.width = w;
   canvas.height = h;
   let ctx = canvas.getContext('2d');
-  ctx.fillStyle = 'white';
-  ctx.fillRect(0, 0, w, h);
+  // Fill the entire canvas bc. there may be non-pixel spaces that still need color
   ctx.fillStyle = color;
+  ctx.fillRect(0, 0, w, h);
+  ctx.fillStyle = 'white';
   for (let y = 0; y < small_y; y++) {
     for (let x = 0; x < small_x; x++) {
-      if (smallpixels[x + y * small_x]) {
-        // True, put a pixel
+      if (!smallpixels[x + y * small_x]) {
+        // Spots that should be empty are painted white
         ctx.fillRect(x * pixelsize, y * pixelsize, pixelsize, pixelsize);
       }
     }
   }
+
   // Memoize and return
   let imgurl = canvas.toDataURL();
   pattern_memo.set(key, imgurl);
