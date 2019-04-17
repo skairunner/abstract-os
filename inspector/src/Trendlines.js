@@ -15,7 +15,8 @@ export default function Trendline(props) {
     stroke = '#000',
     stroke_width = 1,
     padding_h = 0,
-    padding_w = 0
+    padding_w = 0,
+    unit = ''
   } = props;
 
   const limitX = props.width - 2 * padding_w;
@@ -27,8 +28,8 @@ export default function Trendline(props) {
     .y(d => scaleY(d[1]));
 
   let datum;
-  if (props.absolute) datum = (<figcaption>{props.data.length != 0 ? props.data[props.data.length - 1][1] : 0}</figcaption>)
-  else datum = (<figcaption>{props.data.length != 0 ? Math.floor(props.data[props.data.length - 1][1] * 100) : 0}%</figcaption>)
+  if (props.absolute) datum = (<figcaption>{props.data.length != 0 ? props.data[props.data.length - 1][1] : 0}{unit}</figcaption>)
+  else datum = (<figcaption>{props.data.length != 0 ? Math.floor(props.data[props.data.length - 1][1] * 100) : 0}{unit}</figcaption>)
 
 
   return (

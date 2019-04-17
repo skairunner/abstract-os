@@ -210,13 +210,15 @@ class App extends Component {
               data={this_step.memdata}
               domain={this_step.memtimerange}
               {...TRENDLINE_OPTS}
+              unit='%'
               caption='Memory used'/>
             <Trendline
               data={this_step.faultdata}
               domain={this_step.faulttimerange}
               valdomain={this_step.faultrange}
               {...TRENDLINE_OPTS}
-              caption='Page faults/s'
+              unit='/s'
+              caption='Page faults'
               absolute/>
           </div>
           <OverviewChart width={600} height={600} state={this_step} />
