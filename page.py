@@ -74,7 +74,8 @@ class PageManager:
 
     def free_page(self, pageid):
         page = self.pages[pageid]
-        self.mem.free(page.addr)
+        if page.addr is not None:
+            self.mem.free(page.addr)
         self.on_page_freed(pageid, self.userstate)
         page.freed = True
 
