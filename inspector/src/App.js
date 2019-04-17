@@ -205,12 +205,13 @@ class App extends Component {
       <div className="App">
         <HotKeys keyMap={keyMap} handlers={handlers}>
           <span>Step: {this.state.is_on}</span>
-          <div class='trendlines'>
+          <div className='trendlines'>
             <Trendline
               data={this_step.memdata}
               domain={this_step.memtimerange}
               {...TRENDLINE_OPTS}
               unit='%'
+              stroke='#9528b4'
               caption='Memory used'/>
             <Trendline
               data={this_step.faultdata}
@@ -218,6 +219,7 @@ class App extends Component {
               valdomain={this_step.faultrange}
               {...TRENDLINE_OPTS}
               unit='/s'
+              stroke='#4da60c'
               caption='Page faults'
               absolute/>
           </div>

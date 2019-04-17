@@ -1,5 +1,6 @@
 import React from 'react';
 import * as d3scale from 'd3-scale';
+import * as d3color from 'd3-color';
 import * as d3shape from 'd3-shape';
 import './Trendlines.css';
 
@@ -19,13 +20,20 @@ export default function Trendline(props) {
     unit = ''
   } = props;
 
+  const areacolor = d3color.color(stroke);
+  areacolor.opacity = 0.1;
+
   const limitX = props.width - 2 * padding_w;
   const limitY = props.height - 2 * padding_h;
   const scaleX = d3scale.scaleLinear(props.domain, [0, limitX]);
   const scaleY = d3scale.scaleLinear(props.absolute ? props.valdomain : [0, 1], [limitY, 0]);
   const line = d3shape.line()
-    .x(d=> scaleX(d[0]))
+    .x(d => scaleX(d[0]))
     .y(d => scaleY(d[1]));
+  const area = d3shape.area()
+    .x(d => scaleX(d[0]))
+    .y(d => scaleY(d[1]))
+    .y1(scaleY.range()[0]);
 
   let datum;
   if (props.absolute) datum = (<figcaption>{props.data.length != 0 ? props.data[props.data.length - 1][1] : 0}{unit}</figcaption>)
@@ -36,9 +44,9 @@ export default function Trendline(props) {
     <figure className='Trendline'>
       <svg width={props.width} height={props.height}>
         <g transform={`translate(${padding_w}, ${padding_h})`}>
-          <line className='boundary' x1='0' y1='0' x2={limitX} y2='0' />
-          <line className='boundary' x1='0' y1={limitY} x2={limitX} y2={limitY} />
-          <path d={ line(props.data) } fill='transparent' stroke={stroke} strokeWidth={stroke_width}/>
+          <rect className='boundary' stroke={stroke} width={limitX} height={limitY} />
+          <path d={ area(props.data) } fill={areacolor.toString()} />
+          <path className='trendline_line' d={ line(props.data) } fill='transparent' stroke={stroke} strokeWidth={stroke_width}/>
         </g>
       </svg>
       <figcaption>{props.caption}</figcaption>
