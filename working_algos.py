@@ -41,7 +41,10 @@ def on_page_created(pageid, state):
 Called when a page is no longer in use and its memory is freed.
 """
 def on_page_freed(pageid, state):
-    state.remove(pageid)
+    try:
+        state.remove(pageid)
+    except:
+        pass
 
 """
 When a process wishes to access data in a page, the page must loaded into memory.
