@@ -27,6 +27,8 @@ class Process:
         self.pages = []
 
     def run(self, timestep):
+        # Temporary until proper page access logic exists
+        self.pagemngr.access_page(self.pages[0].uid)
         if self.workdone + timestep >= self.work:
             self.state = ProcessState.EXIT
             leftover = timestep - (self.work - self.workdone)
