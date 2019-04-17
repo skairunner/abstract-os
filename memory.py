@@ -21,6 +21,7 @@ class PhysicalMemory:
         self.state = [0 for x in range(framecount)]
         self.in_use = 0  # How many frames are currently being used, via counting alloc/free calls
         self.freelist = []
+        self.initialize_freelist = algo.initialize_freelist(self.freelist, framecount)
         self.allocate_memory = algo.allocate_memory
         self.free_memory = algo.free_memory
 
