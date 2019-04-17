@@ -2,6 +2,7 @@ from collections import defaultdict
 from copy import deepcopy
 import json
 from simulator import Simulation
+import sys
 import random
 import toml
 
@@ -132,7 +133,7 @@ if __name__ == '__main__':
     import asyncio
 
     async def listen(websocket, path):
-        sim = ScenarioInstance(Scenario('recurring'))
+        sim = ScenarioInstance(Scenario(sys.argv[1]))
         await websocket.send(sim.serialized())
         async for message in websocket:
             data = json.loads(message)
