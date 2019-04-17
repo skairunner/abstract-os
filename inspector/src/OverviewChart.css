@@ -2,8 +2,9 @@
   stroke-opacity: 'none';
 }
 
-.memory_bar {
-  border: 1px solid black;
+.memory_bar>rect {
+  stroke: black;
+  stroke-width: 1px;
 }
 
 .MemPageLines > path {

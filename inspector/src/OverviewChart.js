@@ -6,11 +6,11 @@ import './OverviewChart.css';
 
 function Frame(props) {
   const x = props.memory_scale(props.addr) + 1;
-  const w = props.memory_scale(props.addr + 1) - x - 1;
+  const w = props.memory_scale(props.addr + 1) - x;
   const imgurl = generate_mempattern(w, props.height, props.data, 5);
   return (
     <g transform={`translate(${x}, 0)`}>
-      <image width={w} height={props.height} xlinkHref={imgurl} />
+      <image y={1} width={w} height={props.height - 2} xlinkHref={imgurl} />
       <text x={w / 2} y={props.height - 2} fill='black' textAnchor='middle'>{props.addr}</text>
     </g>
   )
@@ -147,7 +147,7 @@ export default function OverviewChart(props) {
 
   const limitX = props.width - 2 * padding_w;
   const limitY = props.height - 2 * padding_h;
-  const memory_scale = d3scale.scaleLinear([0, state.mem.framecount], [0, limitX]);
+  const memory_scale = d3scale.scaleLinear([0, state.mem.framecount], [0, limitX - 1]);
 
   // First define process's band. Divide horizontal space into minimum 5 areas.
   let processdomain = processes.map(d => [d.pid, d.pages.length]);

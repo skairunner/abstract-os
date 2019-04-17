@@ -3,7 +3,7 @@ import { HotKeys } from "react-hotkeys";
 import ReconnectingWebSocket from 'reconnecting-websocket';
 import './App.css';
 import Debug from './DebugView';
-import RelTrendline from './RelTrendline';
+import Trendline from './Trendlines';
 import OverviewChart from './OverviewChart';
 import Timeline from './Timeline';
 
@@ -43,6 +43,21 @@ class App extends Component {
     this.rws.addEventListener('message', this.handleData);
   }
 
+  // Process data only once per step, if possible
+  preprocessData = (steps, step) => {
+    // Memory graph
+    let memdata = [], memtimerange = [0, 1];
+
+    if (this.state.steps.length > 0) {
+      const last_10s = limit_by_time(this.state.steps.slice(0, this.state.is_on), TIMEWINDOW);
+      memdata = last_10s.map(d => [d.clock, d.mem.in_use / d.mem.framecount]);
+      let end = memdata.length === 0 ? 0 : memdata[memdata.length - 1][0];
+      memtimerange = [Math.max(0, end - TIMEWINDOW), Math.max(10000, end)];
+    }
+    step.memdata = memdata;
+    step.memtimerange = memtimerange;
+  }
+
   handleData = (event) => {
     let results = JSON.parse(event.data);
     this.setState(oldstate => {
@@ -50,7 +65,9 @@ class App extends Component {
       state.steps = oldstate.steps.slice(0);
       for (let step of results) {
         step.pagemngr.pages = step.pagemngr.pages.filter(d => !d.freed);
+        // Process data
         state.steps.push(step);
+        this.preprocessData(state.steps, step);
       }
       state.steps.sort(d => d.clock)
       state.is_on = state.steps.length - 1;
@@ -87,14 +104,6 @@ class App extends Component {
   }
 
   render() {
-    let memdata = [], memtimerange = [0, 1];
-
-    if (this.state.steps.length > 0) {
-      const last_10s = limit_by_time(this.state.steps.slice(0, this.state.is_on), TIMEWINDOW);
-      memdata = last_10s.map(d => [d.clock, d.mem.in_use / d.mem.framecount]);
-      let end = memdata.length === 0 ? 0 : memdata[memdata.length - 1][0];
-      memtimerange = [Math.max(0, end - TIMEWINDOW), Math.max(10000, end)];
-    }
 
     const handlers = {
       FORWARD: e => this.do_step(1),
@@ -105,15 +114,23 @@ class App extends Component {
       TO_END: e => this.step_to(this.state.steps.length - 1)
     }
 
+    if (this.state.is_on < 0) {
+      return (
+        <div className='App'>
+          Attempting to connect to server...
+        </div>
+      )
+    }
+
     const this_step = this.state.steps[this.state.is_on];
 
     return (
       <div className="App">
         <HotKeys keyMap={keyMap} handlers={handlers}>
           <span>Step: {this.state.is_on}</span>
-          <RelTrendline
-            data={memdata}
-            domain={memtimerange}
+          <Trendline
+            data={this_step.memdata}
+            domain={this_step.memtimerange}
             width={100}
             height={50}
             padding_w={5}

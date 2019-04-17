@@ -14,7 +14,7 @@ export function generate_mempattern(w, h, seed, pixelsize=5) {
     return pattern_memo.get(key);
   }
   const rng = new Random.MT(hash);
-  const color = palettes.schemeSet3[rng.range(0, 11) % 12];
+  const color = seed === 0 ? '#777' : palettes.schemeSet3[rng.range(0, 11) % 12];
 
   // Mirror a smaller pixel pattern, then blow it up pixelsize amount times
   const small_x = Math.floor(w / pixelsize);

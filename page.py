@@ -26,6 +26,7 @@ class PageManager:
         self.on_page_created = algo.on_page_created
         self.on_page_freed = algo.on_page_freed
         self.userstate = algo.initialize_pagemanager_state()
+        self.faults = 0  # Reset on every step
 
     def make_page(self, data):
         # Create a new page and return the Page object.
@@ -66,6 +67,7 @@ class PageManager:
         if pageid >= len(self.pages):
             raise exceptions.PageDoesntExist(f"Page {pageid} doesn't exist.")
         if self.pages[pageid].addr is None:
+            self.faults += 1
             self.handle_pagefault(pageid, self.userstate, self.evict_page, self.mem.framecount)
             self.load_page(pageid)
         return self.pages[pageid].addr
@@ -81,5 +83,6 @@ class PageManager:
         obj['objtype'] = 'page_manager'
         obj['pages'] = [x.serialize() for x in self.pages]
         obj['slots'] = self.slots
+        obj['faults'] = self.faults
         # Do not serialize mem, because it's not 'owned' by PageManager.
         return obj

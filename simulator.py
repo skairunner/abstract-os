@@ -38,6 +38,7 @@ class Simulation:
     def step(self):
         self.history.append(self.current)
         self.current = deepcopy(self.current)
+        self.current.pagemngr.faults = 0  # Reset fault count
         self.current.sched.run(self.current.time, self.current.clock)
         # This should be streamlined later
         self.current.clock += self.current.time
