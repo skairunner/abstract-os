@@ -7,7 +7,8 @@ import './OverviewChart.css';
 function Frame(props) {
   const x = props.memory_scale(props.addr) + 1;
   const w = props.memory_scale(props.addr + 1) - x;
-  const imgurl = generate_mempattern(w, props.height, props.data, 5);
+  const tilesize = Math.max(2, Math.floor(w / 5));
+  const imgurl = generate_mempattern(w, props.height, props.data, tilesize);
   return (
     <g transform={`translate(${x}, 0)`}>
       <image y={1} width={w} height={props.height - 2} xlinkHref={imgurl} />
