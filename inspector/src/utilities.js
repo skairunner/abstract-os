@@ -69,3 +69,12 @@ export function generate_mempattern(w, h, seed, pixelsize=5) {
   pattern_memo.set(key, imgurl);
   return imgurl;
 }
+
+// Find the max element in a, applying the transform to every element
+export function arrmax(a, transform= d => d) {
+  return a.reduce((prev, curr) => transform(curr) > transform(prev) ? curr : prev);
+}
+
+export function arrsum(a) {
+  return a.reduce((accum, v) => accum + v);
+}

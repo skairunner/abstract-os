@@ -6,6 +6,7 @@ import Debug from './DebugView';
 import Trendline from './Trendlines';
 import OverviewChart from './OverviewChart';
 import Timeline from './Timeline';
+import { arrmax, arrsum } from './utilities';
 
 // Only returns elements that occured up to time ms ago
 function limit_by_time(source, time) {
@@ -22,6 +23,65 @@ function limit_by_time(source, time) {
   return source.slice(i);
 }
 
+// Calculate a rolling average of the values with the given window size.
+// Values are tuples of [timestamp, value]. 
+function rolling_average(values, window) {
+  if (values.length < window) {
+    return []
+  }
+  let valsum = 0;
+  let timesum = 0;
+  let out = []
+  for (let i = 0; i < values.length - window; i++) {
+    for (let n = 0; n < window; n++) {
+      timesum += values[i + n][0];
+      valsum += values[i + n][1];
+    }
+    out.push([timesum / window, valsum / window]);
+    timesum = 0;
+    valsum = 0;
+  }
+  return out;
+}
+
+/**
+ * Divides source into buckets of time. If a step is on the limit between two 
+ * buckets, it'l be divided depending on how much on the line it is.
+ * @param {list} source 
+ * @param {number} time 
+ * @param {fn(datum) => value} transform - Applied to each element to extract the value returned
+ * @param {fn(values) => value} callback - Provided a list of adjusted values to apply to each bucket.
+ * @returns List of [time, value] for each time bucket.
+ */
+function batch_steps(source, time, transform, callback) {
+  // sum: time sum
+  let sum = 0, out = [[0, 0]], temp = [];
+  for(let el of source) {
+    if (sum + el.time > time) {
+      const frac = (time - sum) / time;
+      temp.push(transform(el) * frac);
+      // Pop and add to results
+      const timestamp = time * out.length;
+      out.push([timestamp, callback(temp)])
+      // Finally, add the remainder of the el value to temps
+      temp = [transform(el) * (1 - frac)];
+      sum = sum + el.time - time; // Also reset time sum
+    } else {
+      // Otherwise just add to the temp array
+      sum += el.time;
+      temp.push(transform(el));
+    }
+  }
+  // If there's anything left in temp, modify it and add to end
+  if (temp.length !== 0) {
+    let frac = sum / time;
+    const timestamp = time * (out.length - 1 + frac);
+    const adjval = sum === 0 ? 0 : callback(temp) / frac;
+    out.push([timestamp, adjval]);
+  }
+  return out;
+}
+
 const keyMap = {
   FORWARD: 'right',
   BACKWARD: 'left',
@@ -30,7 +90,9 @@ const keyMap = {
   TO_END: ['command+right', 'ctrl+right'],
   TO_START: ['command+left', 'ctrl+left'],
 }
-const TIMEWINDOW = 10000;
+const TIMEWINDOW = 10000; // the range of time to show in the trendlines
+const TIMEBUCKET = 200; // the granularity of time
+const ROLLING_WINDOW = 5;
 
 class App extends Component {
   constructor(props) {
@@ -48,13 +110,22 @@ class App extends Component {
     // Memory graph
     let memdata = [], memtimerange = [0, 1];
 
-    let last_10s = limit_by_time(this.state.steps, TIMEWINDOW);
+    const last_10s = limit_by_time(steps, TIMEWINDOW);
     memdata = last_10s.map(d => [d.clock, d.mem.in_use / d.mem.framecount]);
-    let end = memdata.length === 0 ? 0 : memdata[memdata.length - 1][0];
+    let end = memdata[memdata.length - 1][0];
     memtimerange = [Math.max(0, end - TIMEWINDOW), Math.max(10000, end)];
     // Only does 10s of data.
     step.memdata = memdata;
     step.memtimerange = memtimerange;
+
+    // Page faults
+    const faultdata = batch_steps(last_10s, TIMEBUCKET, d => d.pagemngr.faults, ds => arrsum(ds));
+    const faultmax = arrmax(faultdata, d => d[1])[1];
+    step.faultrange = [0, faultmax == 0 ? 1 : faultmax];
+    end = faultdata[faultdata.length - 1][0];
+    // assign rolling average
+    step.faultdata = rolling_average(faultdata, ROLLING_WINDOW);
+    step.faulttimerange = [Math.max(0, end - TIMEWINDOW), Math.max(10000, end)];
   }
 
   handleData = (event) => {
@@ -121,20 +192,33 @@ class App extends Component {
       )
     }
 
+    const TRENDLINE_OPTS = {
+      width: 100,
+      height: 50,
+      padding_w: 5,
+      padding_h: 5
+    };
+
     const this_step = this.state.steps[this.state.is_on];
 
     return (
       <div className="App">
         <HotKeys keyMap={keyMap} handlers={handlers}>
           <span>Step: {this.state.is_on}</span>
-          <Trendline
-            data={this_step.memdata}
-            domain={this_step.memtimerange}
-            width={100}
-            height={50}
-            padding_w={5}
-            padding_h={5}
-            caption='Memory used'/>
+          <div class='trendlines'>
+            <Trendline
+              data={this_step.memdata}
+              domain={this_step.memtimerange}
+              {...TRENDLINE_OPTS}
+              caption='Memory used'/>
+            <Trendline
+              data={this_step.faultdata}
+              domain={this_step.faulttimerange}
+              valdomain={this_step.faultrange}
+              {...TRENDLINE_OPTS}
+              caption='Page faults/s'
+              absolute/>
+          </div>
           <OverviewChart width={600} height={600} state={this_step} />
           <Timeline
             steps={this.state.steps}

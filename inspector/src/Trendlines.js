@@ -21,14 +21,14 @@ export default function Trendline(props) {
   const limitX = props.width - 2 * padding_w;
   const limitY = props.height - 2 * padding_h;
   const scaleX = d3scale.scaleLinear(props.domain, [0, limitX]);
-  const scaleY = d3scale.scaleLinear(props.absolute ? props.domain : [0, 1], [limitY, 0]);
+  const scaleY = d3scale.scaleLinear(props.absolute ? props.valdomain : [0, 1], [limitY, 0]);
   const line = d3shape.line()
     .x(d=> scaleX(d[0]))
     .y(d => scaleY(d[1]));
-  
-  let caption;
-  if (props.absolute) caption = (<figcaption>{props.data.length != 0 ? props.data[props.data.length - 1][1] : 0}</figcaption>)
-  else caption = (<figcaption>{props.data.length != 0 ? Math.floor(props.data[props.data.length - 1][1] * 100) : 0}%</figcaption>)
+
+  let datum;
+  if (props.absolute) datum = (<figcaption>{props.data.length != 0 ? props.data[props.data.length - 1][1] : 0}</figcaption>)
+  else datum = (<figcaption>{props.data.length != 0 ? Math.floor(props.data[props.data.length - 1][1] * 100) : 0}%</figcaption>)
 
 
   return (
@@ -41,7 +41,7 @@ export default function Trendline(props) {
         </g>
       </svg>
       <figcaption>{props.caption}</figcaption>
-      {caption}      
+      {datum}
     </figure>
   )
 }
