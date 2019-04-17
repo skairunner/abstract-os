@@ -4,6 +4,7 @@ export default function proportionalScale(inputs, range) {
 
   // Set state variables
   let paddingInner = 0,
+    paddingOuter = 0,
     order = {},
     output = {},
     inputs_dict = {},
@@ -18,14 +19,23 @@ export default function proportionalScale(inputs, range) {
     if (typeof padding === 'undefined')
       return paddingInner;
     paddingInner = padding;
+    rescale();
     return scale;
   };
+
+  scale.paddingOuter = padding => {
+    if (typeof padding === 'undefined')
+      return paddingOuter;
+    paddingOuter = padding;
+    rescale();
+    return scale;
+  }
 
   function rescale() {
     let reverse = r1 < r0,
       start = reverse ? r1 : r0,
       stop = reverse ? r0 : r1;
-    step = (stop - start) / Math.max(1, sum - paddingInner);
+    step = (stop - start) / Math.max(1, sum - paddingInner + paddingOuter);
   }
 
   scale.bandwidth = d => inputs_dict[d] * step;

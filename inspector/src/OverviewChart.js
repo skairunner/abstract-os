@@ -156,7 +156,9 @@ export default function OverviewChart(props) {
   if (processcount < 5) {
     processdomain.push([`placeholder`, 5 - processcount]);
   }
-  const process_scale = proportionalScale(processdomain, memory_scale.range()).paddingInner(0.05);
+  const process_scale = proportionalScale(processdomain, memory_scale.range())
+    .paddingInner(0.05)
+    .paddingOuter(1);
 
   // Next, determine the scale of the pages.
   // Pages are located near the first process that 'owns' it. Essentially,

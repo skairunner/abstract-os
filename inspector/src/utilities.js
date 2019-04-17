@@ -15,9 +15,13 @@ export function generate_mempattern(w, h, seed, pixelsize=5) {
   }
   const rng = new Random.MT(hash);
   const color = palettes.schemeSet3[rng.range(0, 11) % 12];
+
   // Mirror a smaller pixel pattern, then blow it up pixelsize amount times
   const small_x = Math.floor(w / pixelsize);
   const small_y = Math.floor(h / pixelsize);
+  // Calc offsets
+  const paddingX = Math.floor((w % pixelsize) / 2);
+  const paddingY = Math.floor((h % pixelsize) / 2);
   let smallpixels = Array.from(small_x * small_y);
   for (let y = 0; y < small_y; y++) {
     for (let x = 0; x < small_x; x++) {
@@ -55,7 +59,7 @@ export function generate_mempattern(w, h, seed, pixelsize=5) {
     for (let x = 0; x < small_x; x++) {
       if (!smallpixels[x + y * small_x]) {
         // Spots that should be empty are painted white
-        ctx.fillRect(x * pixelsize, y * pixelsize, pixelsize, pixelsize);
+        ctx.fillRect(paddingX + x * pixelsize, paddingY + y * pixelsize, pixelsize, pixelsize);
       }
     }
   }
