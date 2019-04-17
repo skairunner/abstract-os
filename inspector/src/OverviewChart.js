@@ -11,7 +11,7 @@ function Frame(props) {
   return (
     <g transform={`translate(${x}, 0)`}>
       <image width={w} height={props.height} xlinkHref={imgurl} />
-      <text x={w / 2} y={props.height / 2} fill='black' textAnchor='middle'>{props.data}</text>
+      <text x={w / 2} y={props.height - 2} fill='black' textAnchor='middle'>{props.addr}</text>
     </g>
   )
 }
@@ -133,7 +133,6 @@ function PageToProcLines(props) {
 }
 
 export default function OverviewChart(props) {
-  generate_mempattern(5, 5, 0, 1);
   // Destructuring to set defaults for missing values
   const {
     padding_h = 0,
