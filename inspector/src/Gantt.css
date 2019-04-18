@@ -1,0 +1,17 @@
+.gantt_caption {
+  text-anchor: start;
+  font-size: 10pt;
+  fill: white;
+}
+
+.gantt_start {
+  text-anchor: start;
+  fill: white;
+  font-size: 8pt;
+}
+
+.gantt_end {
+  text-anchor: end;
+  fill: white;
+  font-size: 8pt;
+}

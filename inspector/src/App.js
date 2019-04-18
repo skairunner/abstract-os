@@ -3,6 +3,7 @@ import { HotKeys } from "react-hotkeys";
 import ReconnectingWebSocket from 'reconnecting-websocket';
 import './App.css';
 import Debug from './DebugView';
+import Gantt from './Gantt';
 import Trendline from './Trendlines';
 import OverviewChart from './OverviewChart';
 import Timeline from './Timeline';
@@ -132,6 +133,9 @@ class App extends Component {
     // assign rolling average
     step.faultdata = rolling_average(faultdata, ROLLING_WINDOW);
     step.faulttimerange = [Math.max(0, end - TIMEWINDOW), Math.max(10000, end)];
+
+    // Also save last 1s for Gantt
+    step.last_1s = limit_by_time(steps, 1000);
   }
 
   handleData = (event) => {
@@ -214,12 +218,19 @@ class App extends Component {
     };
 
     const this_step = this.state.steps[this.state.is_on];
-    const OVERVIEW_HEIGHT = Math.max(this.state.height * .7 - 100, 200);
+    const OVERVIEW_HEIGHT = Math.max(this.state.height * .7 - 150, 200);
 
     return (
       <div className="App">
         <HotKeys keyMap={keyMap} handlers={handlers}>
-          <span>Step: {this.state.is_on}</span>
+          <span className='step'>Step: {this.state.is_on} /</span>
+          <span className='clock'>Clock: {this.state.steps[this.state.is_on].clock}ms</span>
+          <Timeline
+            steps={this.state.steps}
+            width={800}
+            height={40}
+            this_step={this.state.steps[this.state.is_on]}
+            step_to={this.step_to} />
           <div className='trendlines'>
             <Trendline
               data={this_step.memdata}
@@ -236,15 +247,12 @@ class App extends Component {
               unit='/s'
               stroke='#4da60c'
               caption='Page faults'
-              absolute/>
+              absolute />
           </div>
-          <OverviewChart width={600} height={OVERVIEW_HEIGHT} state={this_step} />
-          <Timeline
-            steps={this.state.steps}
-            width={600}
-            height={40}
-            this_step={this.state.steps[this.state.is_on]}
-            step_to={this.step_to} />
+          <div className='main_container'>
+            <OverviewChart width={800} height={OVERVIEW_HEIGHT} state={this_step} />
+            <Gantt width={800} height={50} steps={this_step.last_1s} />
+          </div>
           <Debug state={this_step} />
         </HotKeys>
       </div>

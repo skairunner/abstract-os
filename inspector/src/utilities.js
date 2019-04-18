@@ -72,6 +72,11 @@ export function generate_mempattern(w, h, seed, pixelsize=5) {
   return pattern;
 }
 
+// Just apply colors from schemeCategory10 by remainder pid
+export function color_from_pid(pid) {
+  return palettes.schemeCategory10[pid % 10];
+}
+
 // Find the max element in a, applying the transform to every element
 export function arrmax(a, transform= d => d) {
   return a.reduce((prev, curr) => transform(curr) > transform(prev) ? curr : prev);
