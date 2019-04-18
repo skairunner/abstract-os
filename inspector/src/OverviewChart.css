@@ -7,6 +7,10 @@
   stroke-width: 1px;
 }
 
+.memframe>text {
+  user-select: none;
+}
+
 .MemPageLines > path {
   stroke: #000;
   stroke-width: 2px;

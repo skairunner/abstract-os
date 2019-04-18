@@ -10,7 +10,7 @@ function Frame(props) {
   const tilesize = Math.max(2, Math.floor(w / 5));
   const imgurl = generate_mempattern(w, props.height, props.data, tilesize);
   return (
-    <g transform={`translate(${x}, 0)`}>
+    <g className='memframe' transform={`translate(${x}, 0)`}>
       <image y={1} width={w} height={props.height - 2} xlinkHref={imgurl} />
       <text x={w / 2} y={props.height - 2} fill='black' textAnchor='middle'>{props.addr}</text>
     </g>
