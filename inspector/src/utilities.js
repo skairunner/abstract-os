@@ -7,6 +7,7 @@ export function get_rel_coords(event) {
 }
 
 let pattern_memo = new Map();
+let color_memo = new Map();
 export function generate_mempattern(w, h, seed, pixelsize=5) {
   const hash = seed;
   const key = `${w}_${h}_${hash}`;
@@ -66,8 +67,9 @@ export function generate_mempattern(w, h, seed, pixelsize=5) {
 
   // Memoize and return
   let imgurl = canvas.toDataURL();
-  pattern_memo.set(key, imgurl);
-  return imgurl;
+  let pattern = {imgurl: imgurl, color};
+  pattern_memo.set(key, pattern);
+  return pattern;
 }
 
 // Find the max element in a, applying the transform to every element

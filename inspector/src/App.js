@@ -100,9 +100,15 @@ class App extends Component {
     this.state = {
       steps: [],
       is_on: -1,
+      width: 600,
+      height: 600
     }
     this.rws = new ReconnectingWebSocket('ws://localhost:8765');
     this.rws.addEventListener('message', this.handleData);
+  }
+
+  updateDimensions = () => {
+    this.setState(oldstate => ({...oldstate, width: window.innerWidth, height: window.innerHeight }));
   }
 
   // Process data only once per step, if possible
@@ -173,6 +179,14 @@ class App extends Component {
     }
   }
 
+  componentWillMount = () => {
+    this.updateDimensions();
+  }
+
+  componentDidMount = () => {
+    window.addEventListener('resize', this.updateDimensions);
+  }
+
   render() {
 
     const handlers = {
@@ -200,6 +214,7 @@ class App extends Component {
     };
 
     const this_step = this.state.steps[this.state.is_on];
+    const OVERVIEW_HEIGHT = Math.max(this.state.height * .7 - 100, 200);
 
     return (
       <div className="App">
@@ -223,7 +238,7 @@ class App extends Component {
               caption='Page faults'
               absolute/>
           </div>
-          <OverviewChart width={600} height={600} state={this_step} />
+          <OverviewChart width={600} height={OVERVIEW_HEIGHT} state={this_step} />
           <Timeline
             steps={this.state.steps}
             width={600}

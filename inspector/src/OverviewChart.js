@@ -1,5 +1,6 @@
 import React from 'react';
 import * as d3scale from 'd3-scale';
+import * as d3color from 'd3-color';
 import proportionalScale from './ProportionalScale';
 import {generate_mempattern} from './utilities';
 import './OverviewChart.css';
@@ -8,10 +9,11 @@ function Frame(props) {
   const x = props.memory_scale(props.addr) + 1;
   const w = props.memory_scale(props.addr + 1) - x;
   const tilesize = Math.max(2, Math.floor(w / 5));
-  const imgurl = generate_mempattern(w, props.height, props.data, tilesize);
+  const pattern = generate_mempattern(w, props.height, props.data, tilesize);
+  props.memcolors[props.addr] = pattern.color;
   return (
     <g className='memframe' transform={`translate(${x}, 0)`}>
-      <image y={1} width={w} height={props.height - 2} xlinkHref={imgurl} />
+      <image y={1} width={w} height={props.height - 2} xlinkHref={pattern.imgurl} />
       <text x={w / 2} y={props.height - 2} fill='black' textAnchor='middle'>{props.addr}</text>
     </g>
   )
@@ -24,6 +26,7 @@ function MemoryBar(props) {
       data={d}
       addr={i}
       height={props.height}
+      memcolors={props.memcolors}
       memory_scale={props.memory_scale}/>
   ));
   return (
@@ -94,7 +97,13 @@ function MemToPageLines(props) {
     let x0 = props.memory_scale(d.addr + .5);
     let y = scale(i + 0.5); // The height in the bundle of this line
     let x1 = props.page_scale(d.uid) + props.page_scale.bandwidth() / 2;
-    return (<path key={d.uid} d={`M${x0},0 L${x0},${y} L${x1},${y} L${x1},${props.height}`} />);
+    let col = d3color.hsl(props.memcolors[d.addr]);
+    col.l = Math.max(0, col.l - 0.2);
+    return (
+      <path
+        stroke={col.toString()}
+        key={d.uid}
+        d={`M${x0},0 L${x0},${y} L${x1},${y} L${x1},${props.height}`} />);
   })
   return (
     <g className='MemPageLines' transform={`translate(0,${props.y})`}>
@@ -191,23 +200,28 @@ export default function OverviewChart(props) {
 
   // Define a vertical scale to place the bar, bar-page lines, pages, page-process lines, and processes.
   let vscale = proportionalScale([
-    ['mem', 6],
-    ['mem-page', 4],
-    ['page', 4],
+    ['mem', 2],
+    ['mem-page', 2],
+    ['page', 1],
     ['page-proc', 1],
-    ['proc', 6]
+    ['proc', 2]
   ], [0, props.height]);
+
+  // Make an array to store frame colors in.
+  let memcolors = state.mem.memory.map(d => '');
 
   return (
     <svg width={props.width} height={props.height}>
       <MemoryBar
         mem={state.mem}
         memory_scale={memory_scale}
-        height={vscale.bandwidth('mem')} />
+        height={vscale.bandwidth('mem')}
+        memcolors={memcolors} />
       <MemToPageLines
         pagemngr={state.pagemngr}
         page_scale={page_scale}
         memory_scale={memory_scale}
+        memcolors={memcolors}
         height={vscale.bandwidth('mem-page')}
         bundle_proportion = {0.4}
         y={vscale('mem-page')}

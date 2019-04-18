@@ -12,17 +12,18 @@
 }
 
 .MemPageLines > path {
-  stroke: #000;
-  stroke-width: 2px;
+  stroke-width: 4px;
   fill: none;
 }
 
 .Page>rect {
-  fill: #099;
+  fill: white;
+  stroke: #AAA;
+  stroke-width: 2px;
 }
 
 .Page>text {
-  fill: white;
+  fill: black;
 }
 
 .PageProcLines>line {
@@ -32,12 +33,4 @@
 
 .Process>rect {
   fill: #CCC;
-}
-
-.Page>rect {
-  fill: #0CC;
-}
-
-.Page>text {
-  fill: white;
 }
