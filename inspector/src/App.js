@@ -108,7 +108,7 @@ class App extends Component {
   // Process data only once per step, if possible
   preprocessData = (steps, step) => {
     // Memory graph
-    let memdata = [], memtimerange = [0, 1];
+    let memdata = [], memtimerange = [];
 
     const last_10s = limit_by_time(steps, TIMEWINDOW);
     memdata = last_10s.map(d => [d.clock, d.mem.in_use / d.mem.framecount]);
@@ -139,7 +139,7 @@ class App extends Component {
         state.steps.push(step);
         this.preprocessData(state.steps, step);
       }
-      state.steps.sort(d => d.clock)
+      state.steps.sort((d1, d2) => d1.clock - d2.clock)
       state.is_on = state.steps.length - 1;
       return state;
     })

@@ -32,8 +32,9 @@ export default function Trendline(props) {
     .y(d => scaleY(d[1]));
   const area = d3shape.area()
     .x(d => scaleX(d[0]))
-    .y(d => scaleY(d[1]))
-    .y1(scaleY.range()[0]);
+    .y0(d => scaleY(d[1]))
+    .y1(limitY);
+
 
   let datum;
   if (props.absolute) datum = (<figcaption>{props.data.length != 0 ? props.data[props.data.length - 1][1] : 0}{unit}</figcaption>)
