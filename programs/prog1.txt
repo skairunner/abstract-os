@@ -1,0 +1,7 @@
+work 100
+acquire Y
+malloc a
+write a 10
+read a
+free a
+release Y

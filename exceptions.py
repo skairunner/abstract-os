@@ -8,3 +8,11 @@ class AddressInvalid(SimulatorException):
 
 class PageDoesntExist(SimulatorException):
     pass
+
+
+class ProgramParsingException(SimulatorException):
+    pass
+
+
+class ProgramUnknownRun(SimulatorException):
+    pass

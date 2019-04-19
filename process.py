@@ -1,8 +1,57 @@
+from enum import Enum, auto
 import algorithms as algo
 from copy import deepcopy
 import json
 from processstate import ProcessState
+import exceptions
 import random
+
+
+class Operation(Enum):
+    Work = 1
+    Acquire = 2
+    Malloc = 3
+    Release = 4
+    Write = 5
+    Read = 6
+    Free = 7
+
+
+# RESOURCES IN AQUIRE SHOULD BE A PRE CONSTRUCTED ENUM FROM INIT AND SYSTEM DEFINITIONS
+def load_program_to_process(process_name, page_emanager, pid):
+    new_proc = Process(page_emanager, pid, name=process_name)
+    with open(process_name + ".txt") as txt:
+        for line in txt:
+            line = line.split()
+            instruction = []
+            op = line[0].lower()
+            if op == Operation.Work.name.lower():
+                instruction.append(Operation.Work)
+                instruction.append(int(line[1]))
+            elif op == Operation.Acquire.name.lower():
+                instruction.append(Operation.Acquire)
+                instruction.append(line[1])
+            elif op == Operation.Malloc.name.lower():
+                instruction.append(Operation.Malloc)
+                instruction.append(line[1])
+            elif op == Operation.Write.name.lower():
+                instruction.append(Operation.Write)
+                instruction.append(line[1])
+                instruction.append(int(line[2]))
+            elif op == Operation.Read.name.lower():
+                instruction.append(Operation.Read)
+                instruction.append(line[1])
+            elif op == Operation.Free.name.lower():
+                instruction.append(Operation.Free)
+                instruction.append(line[1])
+            elif op == Operation.Release.name.lower():
+                instruction.append(Operation.Release)
+                instruction.append(line[1])
+            else:
+                raise exceptions.ProgramParsingException(f"No operation named {line[0]}.")
+
+            new_proc.program.append(tuple(instruction))
+    return new_proc
 
 
 class Process:
@@ -18,8 +67,14 @@ class Process:
         self.ended = None  # What time the process was terminated
         self.extra = None
 
-        self.work = 1000
         self.workdone = 0
+        self.program = []
+        self.program_counter = 0
+        # waiting on resources, {'Y':True,'X':False}
+        self.resources = {}
+        # ('a', 10, pageref),
+        self.remember = []
+        self.mem_consistency = {}
 
     def free_memory(self):
         for page in self.pages:
@@ -29,14 +84,67 @@ class Process:
     def run(self, timestep):
         # Temporary until proper page access logic exists
         self.pagemngr.access_page(self.pages[0].uid)
-        if self.workdone + timestep >= self.work:
-            self.state = ProcessState.EXIT
-            leftover = timestep - (self.work - self.workdone)
-            self.workdone = self.work
-            return leftover
+        instruction = self.program[self.program_counter]
+        if self.resources:
+            if not all(self.resources.values()):
+                self.state = ProcessState.BLOCKED
+
+        elif instruction[0] in Operation:
+            if instruction[0] == Operation.Work:
+                if self.workdone < instruction[1]:
+                    self.workdone += timestep
+                    return instruction[1] - self.workdone
+                else:
+                    self.program_counter += 1
+
+            while instruction[0] != Operation.Work:
+                instruction = self.program[self.program_counter]
+                if instruction[0] == Operation.Acquire:
+                    if instruction[1] in self.resources:
+                        if not self.resources[instruction[1]]:
+                            self.state = ProcessState.BLOCKED
+                            return timestep
+                    else:
+                        # aquire resource
+                        self.resources[instruction[1]] = False
+
+                elif instruction[0] == Operation.Malloc:
+                    new_page = self.pagemngr.make_page(0)
+                    self.remember.append((instruction[1], 0, new_page))
+                    self.pages.append(new_page)
+
+                elif instruction[0] == Operation.Write:
+                    for i, var, val, page in enumerate(self.remember):
+                        if var == instruction[1]:
+                            self.remember[i] = (var, instruction[2], page)
+                            self.pagemngr.mem.set(page.addr, instruction[2])
+
+                elif instruction[0] == Operation.Read:
+                    for var, val, page in self.remember:
+                        if var == instruction[1]:
+                            if val == self.pagemngr.mem.get(page.addr):
+                                self.mem_consistency[instruction[1]] = True
+                            else:
+                                self.mem_consistency[instruction[1]] = False
+
+                elif instruction[0] == Operation.Free:
+                    for var, val, page in self.remember:
+                        if var == instruction[1]:
+                            self.pagemngr.mem.free(page.addr)
+
+                elif instruction[0] == Operation.Release:
+                    if instruction[1] in self.resources.keys():
+                        # release resource
+                        self.resources.pop(instruction[1])
+
+                self.program_counter += 1
         else:
-            self.workdone += timestep
-            return 0
+            raise exceptions.ProgramUnknownRun(
+                f'Unknown instruction to run {instruction[0]}, system extended?')
+
+        if self.program_counter >= len(self.program):
+            self.state = ProcessState.EXIT
+
 
     def serialize(self):
         # Return a JSON string that represents this object.
@@ -49,6 +157,9 @@ class Process:
         obj['spawned_at'] = self.spawned_at
         obj['ended'] = self.ended
         obj['workdone'] = self.workdone
+        obj['program_counter'] = self.program_counter
+        obj['program'] = self.program
+        obj['mem_consistency'] = self.mem_consistency
         return obj
 
 
