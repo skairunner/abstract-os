@@ -66,8 +66,14 @@ export function generate_mempattern(w, h, seed, pixelsize=5) {
 
   // Memoize and return
   let imgurl = canvas.toDataURL();
-  pattern_memo.set(key, imgurl);
-  return imgurl;
+  let pattern = {imgurl: imgurl, color};
+  pattern_memo.set(key, pattern);
+  return pattern;
+}
+
+// Just apply colors from schemeCategory10 by remainder pid
+export function color_from_pid(pid) {
+  return palettes.schemeCategory10[pid % 4];
 }
 
 // Find the max element in a, applying the transform to every element

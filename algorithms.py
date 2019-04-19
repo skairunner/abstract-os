@@ -3,22 +3,23 @@ from processstate import ProcessState
 ### MEMORY ###
 
 """
+You can initialize the freelist here, if you want to.
+"""
+def initialize_freelist(freelist, memsize):
+    for x in range(memsize):
+        freelist.append(x)
+
+"""
 Use the freelist to find an unallocated block of memory and return its address.
 """
 def allocate_memory(freelist):
-    if len(freelist) == 0:
-        freelist.append(0)
-        return 0
-    else:
-        last_addr = freelist[-1]
-        freelist.append(last_addr + 1)
-        return last_addr + 1
+    return freelist.pop()
 
 """
 Update the freelist so you know that you've freed this memory.
 """
 def free_memory(freelist, addr):
-    pass
+    freelist.append(addr)
 
 ### PAGE MANAGEMENT ###
 
@@ -30,17 +31,21 @@ def initialize_pagemanager_state():
     return []
 
 """
-Called after a page is created for the first time and its memory is allocated.
+Called after a page is placed into memory.
 The intention is for you to update your 'state' to keep track of evictees.
 """
-def on_page_created(pageid, state):
+def on_page_loaded(pageid, state):
     state.append(pageid)
 
 """
-Called when a page is no longer in use and its memory is freed.
+Called when a page's memory is freed, be it by evicting
+or by being deallocated.
 """
 def on_page_freed(pageid, state):
-    state.remove(pageid)
+    try:
+        state.remove(pageid)
+    except:
+        pass
 
 """
 When a process wishes to access data in a page, the page must loaded into memory.
@@ -53,7 +58,7 @@ a page to evict.
 :param evict_page: The function to call to evict a page. evict_page(pageid)
 :param mem_size: How many pages can fit into memory at once.
 """
-def handle_pagefault(pageid, state, evict_page, mem_size):
+def handle_pagefault(pageid, state, evict_page, mem_used, mem_size):
     if len(state) < mem_size:  # If there's free memory, just load
         return
     # otherwise, evict & load
@@ -64,15 +69,28 @@ def handle_pagefault(pageid, state, evict_page, mem_size):
 
 def init_scheduler(scheduler):
     scheduler.q = []
+    scheduler.last = None
 
 def admit_process(scheduler, process):
     scheduler.q.append(process)
 
 def pick_process(scheduler):
-    for process in scheduler.q:
+    # for i, process in enumerate(scheduler.q):
+    #     if process.state == ProcessState.READY:
+    #         schedule_me = process
+    #         break
+    # return process
+    schedule_me = None
+    index = None
+    for i, process in enumerate(scheduler.q):
         if process.state == ProcessState.READY:
-            return process
-    return None
+            schedule_me = process
+            index = i
+            break
+    if schedule_me is None:
+        return None
+    scheduler.q.append(scheduler.q.pop(index))
+    return schedule_me
 
 def terminate_process(scheduler, process):
     scheduler.q.remove(process)

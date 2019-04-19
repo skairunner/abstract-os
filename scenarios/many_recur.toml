@@ -1,0 +1,27 @@
+[system]
+memory = 5
+
+[[run_every]]
+name = 'cron'
+script = ''
+interval = 1000
+offset = 100
+
+[[run_rand]]
+name = 'nginx'
+script = ''
+offset = 50
+minimum = 100
+maximum = 1500
+
+[[run_rand]]
+name = 'python'
+script = ''
+minimum = 200
+maximum = 800
+
+[[run_rand]]
+name = 'ssh'
+script = ''
+minimum = 100
+maximum = 1000

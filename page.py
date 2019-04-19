@@ -23,7 +23,7 @@ class PageManager:
         self.mem = mem
         self.uid_count = 0
         self.handle_pagefault = algo.handle_pagefault
-        self.on_page_created = algo.on_page_created
+        self.on_page_loaded = algo.on_page_loaded
         self.on_page_freed = algo.on_page_freed
         self.userstate = algo.initialize_pagemanager_state()
         self.faults = 0  # Reset on every step
@@ -35,12 +35,10 @@ class PageManager:
         # Create the page itself
         self.pages.append(Page(pageid, None))
         # Ensure there is space in memory
-        self.handle_pagefault(pageid, self.userstate, self.evict_page, self.mem.framecount)
+        self.handle_pagefault(pageid, self.userstate, self.evict_page, self.mem.in_use, self.mem.framecount)
         # Insert the page into memory
         self.load_page(pageid, new=True)
         self.mem.set(self.pages[-1].addr, data)
-        # Report page creation to the page manager algorithm
-        self.on_page_created(pageid, self.userstate)
         return self.pages[-1]
 
     def load_page(self, pageid, new=False):
@@ -52,6 +50,8 @@ class PageManager:
             del self.slots[pageid]
         page = self.pages[pageid]
         page.addr = self.mem.alloc(data)
+        # Report page creation to the page manager algorithm
+        self.on_page_loaded(pageid, self.userstate)
         return page.addr
 
     def evict_page(self, pageid):
@@ -60,6 +60,7 @@ class PageManager:
         self.slots[pageid] = self.mem.get(page.addr)
         self.mem.free(page.addr)
         self.pages[pageid].addr = None
+        self.on_page_freed(pageid, self.userstate)
 
     def access_page(self, pageid):
         # Get the address of a page. If the page isn't loaded, attempt to load it.
@@ -68,7 +69,7 @@ class PageManager:
             raise exceptions.PageDoesntExist(f"Page {pageid} doesn't exist.")
         if self.pages[pageid].addr is None:
             self.faults += 1
-            self.handle_pagefault(pageid, self.userstate, self.evict_page, self.mem.framecount)
+            self.handle_pagefault(pageid, self.userstate, self.evict_page, self.mem.in_use, self.mem.framecount)
             self.load_page(pageid)
         return self.pages[pageid].addr
 

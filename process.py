@@ -188,20 +188,20 @@ class Scheduler:
             if process.state == ProcessState.RUNNING:
                 process.state = ProcessState.READY
 
-        while timestep > 0:
-            process = self.pick_process(self)
-            if process is None:
-                return
-            process.state = ProcessState.RUNNING
-            timestep = process.run(timestep)
-            # do handling for finished process or i/o waiting
-            if process.state == ProcessState.EXIT:
-                self.terminate_process(self, process)
-                process.state = ProcessState.DONE
-                process.ended = time
-                process.free_memory()
-                self.term_procs.append(process)
-                self.processes.remove(process)
+        process = self.pick_process(self)
+        if process is None:
+            return [None, timestep]  # Report that no process ran for slice
+        process.state = ProcessState.RUNNING
+        timeused = timestep - process.run(timestep)
+        # do handling for finished process or i/o waiting
+        if process.state == ProcessState.EXIT:
+            self.terminate_process(self, process)
+            process.state = ProcessState.DONE
+            process.ended = time + timeused
+            process.free_memory()
+            self.term_procs.append(process)
+            self.processes.remove(process)
+        return [process.pid, timeused]
 
     def serialize(self):
         obj = {'processes': [x.serialize() for x in self.processes]}

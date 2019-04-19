@@ -25,8 +25,8 @@ export default function Trendline(props) {
 
   const limitX = props.width - 2 * padding_w;
   const limitY = props.height - 2 * padding_h;
-  const scaleX = d3scale.scaleLinear(props.domain, [0, limitX]);
-  const scaleY = d3scale.scaleLinear(props.absolute ? props.valdomain : [0, 1], [limitY, 0]);
+  const scaleX = d3scale.scaleLinear(props.domain, [1, limitX]);
+  const scaleY = d3scale.scaleLinear(props.absolute ? props.valdomain : [0, 1], [limitY, 1]);
   const line = d3shape.line()
     .x(d => scaleX(d[0]))
     .y(d => scaleY(d[1]));
@@ -45,7 +45,7 @@ export default function Trendline(props) {
     <figure className='Trendline'>
       <svg width={props.width} height={props.height}>
         <g transform={`translate(${padding_w}, ${padding_h})`}>
-          <rect className='boundary' stroke={stroke} width={limitX} height={limitY} />
+        <rect className='boundary' stroke={stroke} width={limitX} height={limitY} />
           <path d={ area(props.data) } fill={areacolor.toString()} />
           <path className='trendline_line' d={ line(props.data) } fill='transparent' stroke={stroke} strokeWidth={stroke_width}/>
         </g>

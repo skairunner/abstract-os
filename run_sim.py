@@ -89,7 +89,7 @@ class ScenarioInstance:
             t = run.next()
             if t is not None:
                 insertbuffer[t].append(run)
-        for run in self.scenario.run_every:
+        for run in self.scenario.run_rand:
             t = run.next()
             if t is not None:
                 insertbuffer[t].append(run)
