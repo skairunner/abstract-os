@@ -11,9 +11,11 @@ function Frame(props) {
   const tilesize = Math.max(2, Math.floor(w / 5));
   const pattern = generate_mempattern(w, props.height, props.data, tilesize);
   props.memcolors[props.addr] = pattern.color;
+  const dark_rect = <rect className='dark_mem' width={w} height={props.height} opacity={props.darken ? 1 : 0} />
   return (
     <g className='memframe' transform={`translate(${x}, 0)`}>
       <image y={1} width={w} height={props.height - 2} xlinkHref={pattern.imgurl} />
+      {dark_rect}
       <text x={w / 2} y={props.height - 2} fill='black' textAnchor='middle'>{props.addr}</text>
     </g>
   )
@@ -27,7 +29,8 @@ function MemoryBar(props) {
       addr={i}
       height={props.height}
       memcolors={props.memcolors}
-      memory_scale={props.memory_scale}/>
+      memory_scale={props.memory_scale}
+      darken={!props.mem_is_reffed.has(i)}/>
   ));
   return (
     <g className='memory_bar'>
@@ -183,10 +186,13 @@ export default function OverviewChart(props) {
     }
   }
   // Insert all pages that don't have owners
+  let is_referenced = new Set(); // In order to darken un-referenced memory
   state.pagemngr.pages.forEach(d => {
     if (!did_put_page.has(d.uid)) {
       page_uids.push(d.uid)
     }
+    if (!d.freed)
+      is_referenced.add(d.addr);
   });
 
   // Add extra pages if needed, to have a minimum block width
@@ -216,7 +222,8 @@ export default function OverviewChart(props) {
         mem={state.mem}
         memory_scale={memory_scale}
         height={vscale.bandwidth('mem')}
-        memcolors={memcolors} />
+        memcolors={memcolors}
+        mem_is_reffed={is_referenced} />
       <MemToPageLines
         pagemngr={state.pagemngr}
         page_scale={page_scale}
