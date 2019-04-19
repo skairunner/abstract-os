@@ -91,7 +91,7 @@ const keyMap = {
   TO_END: ['command+right', 'ctrl+right'],
   TO_START: ['command+left', 'ctrl+left'],
 }
-const TIMEWINDOW = 10000; // the range of time to show in the trendlines
+const TIMEWINDOW = 5000; // the range of time to show in the trendlines
 const TIMEBUCKET = 200; // the granularity of time
 const ROLLING_WINDOW = 5;
 
@@ -132,7 +132,7 @@ class App extends Component {
     end = faultdata[faultdata.length - 1][0];
     // assign rolling average
     step.faultdata = rolling_average(faultdata, ROLLING_WINDOW);
-    step.faulttimerange = [Math.max(0, end - TIMEWINDOW), Math.max(10000, end)];
+    step.faulttimerange = [Math.max(0, end - TIMEWINDOW), Math.max(TIMEWINDOW, end)];
 
     // Also save last 1s for Gantt
     step.last_1s = limit_by_time(steps, 1000);
