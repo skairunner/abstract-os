@@ -50,7 +50,7 @@ function GanttBlock(props) {
   const text = props.block.pid === null ? '' : props.block.pid;
 
   return (
-    <g transform={`translate(${x},0)`}>
+    <g className='gantt_block' transform={`translate(${x},0)`}>
       <rect width={w} height={props.height} fill={fill + ''} stroke={stroke + ''} />
       <text className='gantt_caption' x={2} y={12}>{text}</text>
       <text className='gantt_start' x={1} y={props.height - 2}>{render_ms(props.block.start)}</text>

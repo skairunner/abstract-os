@@ -2,7 +2,7 @@ import React from 'react';
 import * as d3scale from 'd3-scale';
 import * as d3color from 'd3-color';
 import proportionalScale from './ProportionalScale';
-import {generate_mempattern} from './utilities';
+import { generate_mempattern, color_from_pid } from './utilities';
 import './OverviewChart.css';
 
 function Frame(props) {
@@ -53,7 +53,7 @@ function Process(props) {
   let width = props.scale.bandwidth(props.process.pid);
   return (
     <g className='Process' transform={`translate(${x}, 0)`}>
-      <rect width={width} height={props.height} />
+      <rect fill={color_from_pid(props.process.pid)} width={width} height={props.height} />
       <text x={3} y={18}>{props.process.name}</text>
       <text x={3} y={36}>pid: {props.process.pid}</text>
     </g>

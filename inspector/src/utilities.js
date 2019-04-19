@@ -7,7 +7,6 @@ export function get_rel_coords(event) {
 }
 
 let pattern_memo = new Map();
-let color_memo = new Map();
 export function generate_mempattern(w, h, seed, pixelsize=5) {
   const hash = seed;
   const key = `${w}_${h}_${hash}`;
@@ -74,7 +73,7 @@ export function generate_mempattern(w, h, seed, pixelsize=5) {
 
 // Just apply colors from schemeCategory10 by remainder pid
 export function color_from_pid(pid) {
-  return palettes.schemeCategory10[pid % 10];
+  return palettes.schemeCategory10[pid % 4];
 }
 
 // Find the max element in a, applying the transform to every element

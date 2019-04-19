@@ -69,11 +69,17 @@ def handle_pagefault(pageid, state, evict_page, mem_used, mem_size):
 
 def init_scheduler(scheduler):
     scheduler.q = []
+    scheduler.last = None
 
 def admit_process(scheduler, process):
     scheduler.q.append(process)
 
 def pick_process(scheduler):
+    # for i, process in enumerate(scheduler.q):
+    #     if process.state == ProcessState.READY:
+    #         schedule_me = process
+    #         break
+    # return process
     schedule_me = None
     index = None
     for i, process in enumerate(scheduler.q):
