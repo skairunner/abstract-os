@@ -6,6 +6,7 @@ import Debug from './DebugView';
 import Gantt from './Gantt';
 import Trendline from './Trendlines';
 import OverviewChart from './OverviewChart';
+import MemoryTimeline from './MemoryTimeline';
 import Timeline from './Timeline';
 import { arrmax, arrsum } from './utilities';
 
@@ -83,6 +84,36 @@ function batch_steps(source, time, transform, callback) {
   return out;
 }
 
+// Divide memory info over time into continuous blocks for memory timeline
+function batch_memory(steps) {
+  let addrs = steps[0].mem.memory.map((d, i) => [{
+    data: d,
+    start: 0,
+    end: steps[0].clock,
+    addr: i
+  }]);
+  if (steps.length == 1) {
+    return addrs.flat();
+  }
+  for (let step of steps.slice(1)) {
+    step.mem.memory.forEach((d, i) => {
+      const last = addrs[i][addrs[i].length - 1];
+      if (last.data == d) {
+        last.end = step.clock;
+      } else {
+        // Otherwise make a new block
+        addrs[i].push({
+          data: d,
+          start: last.end,
+          end: step.clock,
+          addr: i
+        });
+      }
+    });
+  }
+  return addrs.flat();
+}
+
 const keyMap = {
   FORWARD: 'right',
   BACKWARD: 'left',
@@ -106,6 +137,7 @@ class App extends Component {
     }
     this.rws = new ReconnectingWebSocket('ws://localhost:8765');
     this.rws.addEventListener('message', this.handleData);
+    this.mem_renders = {};
   }
 
   updateDimensions = () => {
@@ -124,6 +156,9 @@ class App extends Component {
     // Only does 10s of data.
     step.memdata = memdata;
     step.memtimerange = memtimerange;
+
+    // Process memory info for memory timeline
+    step.mem_history = batch_memory(steps);
 
     // Page faults
     const faultdata = batch_steps(last_10s, TIMEBUCKET, d => d.pagemngr.faults, ds => arrsum(ds));
@@ -192,7 +227,6 @@ class App extends Component {
   }
 
   render() {
-
     const handlers = {
       FORWARD: e => this.do_step(1),
       BACKWARD: e => this.do_step(-1),
@@ -249,11 +283,22 @@ class App extends Component {
               caption='Page faults'
               absolute />
           </div>
-          <div className='main_container'>
-            <OverviewChart width={800} height={OVERVIEW_HEIGHT} state={this_step} />
-            <Gantt width={800} height={50} steps={this_step.last_1s} />
+          <div className='columns'>
+            <div className='main_container col'>
+              <OverviewChart width={800} height={OVERVIEW_HEIGHT} state={this_step} mem_renders={this.mem_renders} />
+              <Gantt width={800} height={50} steps={this_step.last_1s} />
+              <Debug state={this_step} />
+            </div>
+            <div className='memtimeline_container col'>
+              <MemoryTimeline
+                width={25 * this_step.mem.memory.length + 25}
+                height={OVERVIEW_HEIGHT}
+                clock={this_step.clock}
+                framecount={this_step.mem.framecount}
+                mem_renders={this.mem_renders}
+                mem_history={this_step.mem_history} />
+            </div>
           </div>
-          <Debug state={this_step} />
         </HotKeys>
       </div>
     );

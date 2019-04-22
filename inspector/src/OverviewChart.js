@@ -10,7 +10,7 @@ function Frame(props) {
   const w = props.memory_scale(props.addr + 1) - x;
   const tilesize = Math.max(2, Math.floor(w / 5));
   const pattern = generate_mempattern(w, props.height, props.data, tilesize);
-  props.memcolors[props.addr] = pattern.color;
+  props.mem_renders[props.data] = pattern;
   const dark_rect = <rect className='dark_mem' width={w} height={props.height} opacity={props.darken ? 1 : 0} />
   return (
     <g className='memframe' transform={`translate(${x}, 0)`}>
@@ -28,7 +28,7 @@ function MemoryBar(props) {
       data={d}
       addr={i}
       height={props.height}
-      memcolors={props.memcolors}
+      mem_renders={props.mem_renders}
       memory_scale={props.memory_scale}
       darken={!props.mem_is_reffed.has(i)}/>
   ));
@@ -100,7 +100,7 @@ function MemToPageLines(props) {
     let x0 = props.memory_scale(d.addr + .5);
     let y = scale(i + 0.5); // The height in the bundle of this line
     let x1 = props.page_scale(d.uid) + props.page_scale.bandwidth() / 2;
-    let col = d3color.hsl(props.memcolors[d.addr]);
+    let col = d3color.hsl(props.mem_renders[props.mem.memory[d.addr]].color);
     col.l = Math.max(0, col.l - 0.2);
     return (
       <path
@@ -213,22 +213,20 @@ export default function OverviewChart(props) {
     ['proc', 2]
   ], [0, props.height]);
 
-  // Make an array to store frame colors in.
-  let memcolors = state.mem.memory.map(d => '');
-
   return (
     <svg width={props.width} height={props.height}>
       <MemoryBar
         mem={state.mem}
         memory_scale={memory_scale}
         height={vscale.bandwidth('mem')}
-        memcolors={memcolors}
+        mem_renders={props.mem_renders}
         mem_is_reffed={is_referenced} />
       <MemToPageLines
         pagemngr={state.pagemngr}
         page_scale={page_scale}
         memory_scale={memory_scale}
-        memcolors={memcolors}
+        mem={state.mem}
+        mem_renders={props.mem_renders}
         height={vscale.bandwidth('mem-page')}
         bundle_proportion = {0.4}
         y={vscale('mem-page')}
