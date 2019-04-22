@@ -92,8 +92,9 @@ function batch_memory(steps) {
     end: steps[0].clock,
     addr: i
   }]);
+  let flattened = addrs.flat();
   if (steps.length == 1) {
-    return addrs.flat();
+    return flattened;
   }
   for (let step of steps.slice(1)) {
     step.mem.memory.forEach((d, i) => {
@@ -102,16 +103,18 @@ function batch_memory(steps) {
         last.end = step.clock;
       } else {
         // Otherwise make a new block
-        addrs[i].push({
+        const block = {
           data: d,
           start: last.end,
           end: step.clock,
           addr: i
-        });
+        }
+        addrs[i].push(block);
+        flattened.push(block);
       }
     });
   }
-  return addrs.flat();
+  return flattened;
 }
 
 const keyMap = {
