@@ -38,3 +38,9 @@
 .Process>rect {
   opacity: 0.8;
 }
+
+.label {
+  font-family: 'Open Sans', sans-serif;
+  font-size: 14pt;
+  text-anchor: middle;
+}

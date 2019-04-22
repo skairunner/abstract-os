@@ -32,9 +32,13 @@ function MemoryBar(props) {
       memory_scale={props.memory_scale}
       darken={!props.mem_is_reffed.has(i)}/>
   ));
+  const w = props.memory_scale.range()[1];
   return (
     <g className='memory_bar'>
-      <rect width={props.memory_scale.range()[1]} height={props.height} />
+      <text
+        className='label'
+        transform={`translate(-2, ${props.height / 2}) rotate(-90)`}>MEMORY</text>
+      <rect width={w} height={props.height} />
       {frames}
     </g>
   )
@@ -69,6 +73,7 @@ function Pages(props) {
   ))
   return (
     <g className='Pages' transform={`translate(0, ${props.y})`}>
+      <text className='label' transform={`translate(-2, ${props.height / 2}) rotate(-90)`}>PAGES</text>
       {pages}
     </g>
   )
@@ -81,6 +86,7 @@ function Processes(props) {
 
   return (
     <g className='Processes' transform={`translate(0, ${props.y})`}>
+      <text className='label' transform={`translate(-2, ${props.height / 2}) rotate(-90)`}>PROCESSES</text>
       {procs}
     </g>
   )
@@ -149,7 +155,8 @@ export default function OverviewChart(props) {
   // Destructuring to set defaults for missing values
   const {
     padding_h = 0,
-    padding_w = 0
+    padding_w = 0,
+    padding_left = 0
   } = props;
 
   const state = props.state;
@@ -158,7 +165,7 @@ export default function OverviewChart(props) {
   }
   const processes = state.scheduler.processes;
 
-  const limitX = props.width - 2 * padding_w;
+  const limitX = props.width - 2 * padding_w - padding_left;
   const limitY = props.height - 2 * padding_h;
   const memory_scale = d3scale.scaleLinear([0, state.mem.framecount], [0, limitX - 1]);
 
@@ -215,41 +222,43 @@ export default function OverviewChart(props) {
 
   return (
     <svg width={props.width} height={props.height}>
+    <g transform={`translate(${padding_left + padding_w}, 0)`}>
       <MemoryBar
-        mem={state.mem}
-        memory_scale={memory_scale}
-        height={vscale.bandwidth('mem')}
-        mem_renders={props.mem_renders}
-        mem_is_reffed={is_referenced} />
-      <MemToPageLines
-        pagemngr={state.pagemngr}
-        page_scale={page_scale}
-        memory_scale={memory_scale}
-        mem={state.mem}
-        mem_renders={props.mem_renders}
-        height={vscale.bandwidth('mem-page')}
-        bundle_proportion = {0.4}
-        y={vscale('mem-page')}
-      />
-      <Pages
-        processes={processes}
-        pagemngr={state.pagemngr}
-        page_scale={page_scale}
-        memory_scale={memory_scale}
-        height={vscale.bandwidth('page')}
-        y={vscale('page')} />
-      <PageToProcLines
-        processes={processes}
-        pagemngr={state.pagemngr}
-        page_scale={page_scale}
-        process_scale={process_scale}
-        vscale={vscale} />
-      <Processes
-        processes={processes}
-        process_scale={process_scale}
-        memory_scale={memory_scale}
-        height={vscale.bandwidth('proc')}
-        y={vscale('proc')} />
+          mem={state.mem}
+          memory_scale={memory_scale}
+          height={vscale.bandwidth('mem')}
+          mem_renders={props.mem_renders}
+          mem_is_reffed={is_referenced} />
+        <MemToPageLines
+          pagemngr={state.pagemngr}
+          page_scale={page_scale}
+          memory_scale={memory_scale}
+          mem={state.mem}
+          mem_renders={props.mem_renders}
+          height={vscale.bandwidth('mem-page')}
+          bundle_proportion = {0.4}
+          y={vscale('mem-page')}
+        />
+        <Pages
+          processes={processes}
+          pagemngr={state.pagemngr}
+          page_scale={page_scale}
+          memory_scale={memory_scale}
+          height={vscale.bandwidth('page')}
+          y={vscale('page')} />
+        <PageToProcLines
+          processes={processes}
+          pagemngr={state.pagemngr}
+          page_scale={page_scale}
+          process_scale={process_scale}
+          vscale={vscale} />
+        <Processes
+          processes={processes}
+          process_scale={process_scale}
+          memory_scale={memory_scale}
+          height={vscale.bandwidth('proc')}
+          y={vscale('proc')} />
+    </g>
     </svg>
   )
 }
