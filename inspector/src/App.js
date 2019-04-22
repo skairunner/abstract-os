@@ -178,19 +178,19 @@ class App extends Component {
 
   handleData = (event) => {
     let results = JSON.parse(event.data);
-    this.setState(oldstate => {
-      let state = {...oldstate};
-      state.steps = oldstate.steps.slice(0);
-      for (let step of results) {
+    for (let step of results) {
+      this.setState(oldstate => {
+        let state = {...oldstate};
+        state.steps = oldstate.steps.slice(0);
         step.pagemngr.pages = step.pagemngr.pages.filter(d => !d.freed);
         // Process data
         state.steps.push(step);
         this.preprocessData(state.steps, step);
-      }
-      state.steps.sort((d1, d2) => d1.clock - d2.clock)
-      state.is_on = state.steps.length - 1;
-      return state;
-    })
+        state.steps.sort((d1, d2) => d1.clock - d2.clock)
+        state.is_on = state.steps.length - 1;
+        return state;
+      })
+    }
   }
 
   do_step = (n) => {
