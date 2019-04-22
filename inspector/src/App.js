@@ -294,6 +294,7 @@ class App extends Component {
             </div>
             <div className='memtimeline_container col'>
               <MemoryTimeline
+                key={this.state.is_on}
                 width={25 * this_step.mem.memory.length + 25}
                 height={OVERVIEW_HEIGHT}
                 clock={this_step.clock}

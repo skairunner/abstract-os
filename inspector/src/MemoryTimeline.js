@@ -1,5 +1,7 @@
-import React from 'react';
+import React, { Component } from 'react';
 import * as d3scale from 'd3-scale';
+import * as d3zoom from 'd3-zoom';
+import * as d3 from 'd3-selection';
 import './MemoryTimeline.css';
 
 const THUMB_WIDTH = 25;
@@ -19,19 +21,51 @@ function MemoryTimelineBlock(props) {
   )
 }
 
-export default function MemoryTimeline(props) {
-  if (props.mem_renders.length == 0) {
-    return null;
+export default class MemoryTimeline extends Component {
+  constructor(props) {
+    super(props);
+    this.svgref = React.createRef();
+    this.state = {
+      y: 0,
+      z: 1
+    }
   }
-  let scaleY = d3scale.scaleLinear([0, props.clock], [0, props.clock / 4]);
-  const blocks = props.mem_history.map((d, i) => (<MemoryTimelineBlock
-    key={i}
-    data={d}
-    render={props.mem_renders[d.data]}
-    scaleY={scaleY} />));
-  return (
-    <svg className='MemoryTimeline' width={props.width} height={props.height}>
-      <g transform='translate(1, 1)'>{blocks}</g>
-    </svg>
-  )
+
+  componentDidMount() {
+    // We use d3-zoom because zoom behaviours are very hard to get right
+    // Also couldn't find a comparable-quality react-based zoom library.
+    const zoom = d3zoom.zoom()
+      .on('zoom', this.zoomed);
+    d3.select(this.svgref.current)
+      .call(zoom);
+  }
+
+  zoomed = () => {
+    let {k, y} = d3.event.transform;
+    this.setState(oldstate => ({
+      ...oldstate,
+      y,
+      z: k
+    }));
+  }
+
+  render() {
+    const props = this.props;
+    if (props.mem_renders.length == 0) {
+      return null;
+    }
+    let scaleY = d3scale.scaleLinear([0, props.clock], [0, props.clock / 4]);
+    const blocks = props.mem_history.map((d, i) => (<MemoryTimelineBlock
+      key={i}
+      data={d}
+      render={props.mem_renders[d.data]}
+      scaleY={scaleY} />));
+    const initial_y = this.props.height - this.props.clock / 4 - 50;
+    return (
+      <svg className='MemoryTimeline' width={props.width} height={props.height}>
+        <g transform={`translate(1, ${this.state.y}) translate(0, ${initial_y}) scale(${this.state.z})`}>{blocks}</g>
+        <rect width={props.width} height={props.height} opacity={0} ref={this.svgref}/>
+      </svg>
+    )
+  }
 }
