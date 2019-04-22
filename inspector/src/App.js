@@ -178,7 +178,10 @@ class App extends Component {
 
   handleData = (event) => {
     let results = JSON.parse(event.data);
-    for (let step of results) {
+    if (results.type == 'new') {
+      this.setState(oldstate => ({...oldstate, is_on: -1, steps: []}));
+    }
+    for (let step of results.history) {
       this.setState(oldstate => {
         let state = {...oldstate};
         state.steps = oldstate.steps.slice(0);
@@ -295,7 +298,7 @@ class App extends Component {
             <div className='memtimeline_container col'>
               <MemoryTimeline
                 key={this.state.is_on}
-                width={25 * this_step.mem.memory.length + 25}
+                width={200}
                 height={OVERVIEW_HEIGHT}
                 clock={this_step.clock}
                 framecount={this_step.mem.framecount}
