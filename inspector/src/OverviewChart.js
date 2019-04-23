@@ -166,7 +166,6 @@ export default function OverviewChart(props) {
   const processes = state.scheduler.processes;
 
   const limitX = props.width - 2 * padding_w - padding_left;
-  const limitY = props.height - 2 * padding_h;
   const memory_scale = d3scale.scaleLinear([0, state.mem.framecount], [0, limitX - 1]);
 
   // First define process's band. Divide horizontal space into minimum 5 areas.

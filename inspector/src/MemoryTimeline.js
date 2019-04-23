@@ -51,7 +51,7 @@ export default class MemoryTimeline extends Component {
 
   render() {
     const props = this.props;
-    if (props.mem_renders.length == 0) {
+    if (props.mem_renders.length === 0) {
       return null;
     }
     let scaleY = d3scale.scaleLinear([0, props.clock], [0, props.clock / 4]);

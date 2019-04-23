@@ -9,6 +9,7 @@ import OverviewChart from './OverviewChart';
 import MemoryTimeline from './MemoryTimeline';
 import Timeline from './Timeline';
 import { arrmax, arrsum } from './utilities';
+import { TIMEWINDOW, TIMEBUCKET, ROLLING_WINDOW } from './constants';
 
 // Only returns elements that occured up to time ms ago
 function limit_by_time(source, time) {
@@ -93,13 +94,13 @@ function batch_memory(steps) {
     addr: i
   }]);
   let flattened = addrs.flat();
-  if (steps.length == 1) {
+  if (steps.length === 1) {
     return flattened;
   }
   for (let step of steps.slice(1)) {
     step.mem.memory.forEach((d, i) => {
       const last = addrs[i][addrs[i].length - 1];
-      if (last.data == d) {
+      if (last.data === d) {
         last.end = step.clock;
       } else {
         // Otherwise make a new block
@@ -125,9 +126,6 @@ const keyMap = {
   TO_END: ['command+right', 'ctrl+right'],
   TO_START: ['command+left', 'ctrl+left'],
 }
-const TIMEWINDOW = 5000; // the range of time to show in the trendlines
-const TIMEBUCKET = 200; // the granularity of time
-const ROLLING_WINDOW = 5;
 
 class App extends Component {
   constructor(props) {
@@ -166,7 +164,7 @@ class App extends Component {
     // Page faults
     const faultdata = batch_steps(last_10s, TIMEBUCKET, d => d.pagemngr.faults, ds => arrsum(ds));
     const faultmax = arrmax(faultdata, d => d[1])[1];
-    step.faultrange = [0, faultmax == 0 ? 1 : faultmax];
+    step.faultrange = [0, faultmax === 0 ? 1 : faultmax];
     end = faultdata[faultdata.length - 1][0];
     // assign rolling average
     step.faultdata = rolling_average(faultdata, ROLLING_WINDOW);
@@ -178,7 +176,7 @@ class App extends Component {
 
   handleData = (event) => {
     let results = JSON.parse(event.data);
-    if (results.type == 'new') {
+    if (results.type === 'new') {
       this.setState(oldstate => ({...oldstate, is_on: -1, steps: []}));
     }
     for (let step of results.history) {
