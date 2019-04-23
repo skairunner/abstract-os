@@ -63,11 +63,13 @@ export default class MemoryTimeline extends Component {
     const view_w = (THUMB_WIDTH + 2) * props.framecount + 5;
     const initial_y = props.height - this.props.clock / 4;
     return (
-      <svg className='MemoryTimeline' width={props.width} height={props.height} viewBox={`0 0 ${view_w} ${this.props.height}`}>
-        <g transform={`translate(1, ${this.state.y + initial_y}) scale(${this.state.z})`}>
-          {blocks}
-        </g>
-        <rect width={props.width} height={props.height} opacity={0} ref={this.svgref}/>
+      <svg className='MemoryTimeline' width={props.width} height={props.height}>
+        <svg width={props.width} height={props.height} viewBox={`0 0 ${view_w} ${this.props.height}`}>
+          <g transform={`translate(1, ${this.state.y + initial_y}) scale(${this.state.z})`}>
+            {blocks}
+          </g>
+        </svg>
+        <rect width='100%' height={props.height} opacity={0} ref={this.svgref}/>
       </svg>
     )
   }
