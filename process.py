@@ -47,7 +47,6 @@ class Process:
         self.ended = None  # What time the process was terminated
         self.extra = None
 
-        self.workdone = 0
         self.unfinished_work = 0
         self.program = load_program(scriptname)
         self.program_counter = 0
@@ -150,8 +149,8 @@ class Process:
         obj['name'] = str(self.pid) if self.name is None else self.name
         obj['spawned_at'] = self.spawned_at
         obj['ended'] = self.ended
-        obj['workdone'] = self.workdone
         obj['program_counter'] = self.program_counter
+        obj['program_length'] = len(self.program)
         # obj['program'] = self.program
         obj['mem_consistency'] = self.mem_consistency
         return obj
