@@ -17,10 +17,10 @@ class Operation(Enum):
     Free = 7
 
 
-# RESOURCES IN AQUIRE SHOULD BE A PRE CONSTRUCTED ENUM FROM INIT AND SYSTEM DEFINITIONS
-def load_program_to_process(process_name, page_emanager, pid):
-    new_proc = Process(page_emanager, pid, name=process_name)
-    with open(process_name + ".txt") as txt:
+# RESOURCES IN ACQUIRE SHOULD BE A PRE CONSTRUCTED ENUM FROM INIT AND SYSTEM DEFINITIONS
+def load_program_to_process(pagemngr, pid, name, scriptname, spawned_at=None):
+    new_proc = Process(pagemngr, pid, name=name, spawned_at=spawned_at)
+    with open('programs/' + scriptname) as txt:
         for line in txt:
             line = line.split()
             instruction = []
@@ -49,7 +49,7 @@ def load_program_to_process(process_name, page_emanager, pid):
                 instruction.append(line[1])
             else:
                 raise exceptions.ProgramParsingException(f"No operation named {line[0]}.")
-
+            instruction += [''] * (3 - len(instruction))
             new_proc.program.append(tuple(instruction))
     return new_proc
 
@@ -68,6 +68,7 @@ class Process:
         self.extra = None
 
         self.workdone = 0
+        self.unfinished_work = 0
         self.program = []
         self.program_counter = 0
         # waiting on resources, {'Y':True,'X':False}
@@ -75,6 +76,56 @@ class Process:
         # ('a', 10, pageref),
         self.remember = []
         self.mem_consistency = {}
+        self.ops = {
+            Operation.Malloc: self._op_malloc,
+            Operation.Free: self._op_free,
+            Operation.Read: self._op_read,
+            Operation.Write: self._op_write,
+            Operation.Acquire: self._op_acquire,
+            Operation.Release: self._op_release,
+            Operation.Work: self._op_work,
+        }
+
+    def _op_malloc(self, arg1, arg2):
+        new_page = self.pagemngr.make_page(0)
+        self.remember.append((arg1, 0, new_page))
+        self.pages.append(new_page)
+
+    def _op_write(self, arg1, arg2):
+        for i, var, val, page in enumerate(self.remember):
+            if var == arg1:
+                self.remember[i] = (var, arg2, page)
+                self.pagemngr.mem.set(page.addr, arg2)
+
+    def _op_read(self, arg1, arg2):
+        for var, val, page in self.remember:
+            if var == arg1:
+                if val == self.pagemngr.mem.get(page.addr):
+                    self.mem_consistency[arg1] = True
+                else:
+                    self.mem_consistency[arg1] = False
+
+    def _op_free(self, arg1, arg2):
+        for var, val, page in self.remember:
+            if var == arg1:
+                self.pagemngr.mem.free(page.addr)
+
+    def _op_acquire(self, arg1, arg2):
+        if arg1 in self.resources:
+            if not self.resources[arg1]:
+                self.state = ProcessState.BLOCKED
+                return 0
+        else:
+            # aquire resource
+            self.resources[arg1] = False
+
+    def _op_release(self, arg1, arg2):
+        if arg1 in self.resources.keys():
+            # release resource
+            self.resources.pop(arg1)
+
+    def _op_work(self, arg1, arg2):
+        pass
 
     def free_memory(self):
         for page in self.pages:
@@ -84,67 +135,31 @@ class Process:
     def run(self, timestep):
         # Temporary until proper page access logic exists
         self.pagemngr.access_page(self.pages[0].uid)
-        instruction = self.program[self.program_counter]
+
         if self.resources:
             if not all(self.resources.values()):
                 self.state = ProcessState.BLOCKED
+                return 0
 
-        elif instruction[0] in Operation:
-            if instruction[0] == Operation.Work:
-                if self.workdone < instruction[1]:
-                    self.workdone += timestep
-                    return instruction[1] - self.workdone
-                else:
-                    self.program_counter += 1
+        while self.program_counter < len(self.program):
+            operation, arg1, arg2 = self.program[self.program_counter]
 
-            while instruction[0] != Operation.Work:
-                instruction = self.program[self.program_counter]
-                if instruction[0] == Operation.Acquire:
-                    if instruction[1] in self.resources:
-                        if not self.resources[instruction[1]]:
-                            self.state = ProcessState.BLOCKED
-                            return timestep
-                    else:
-                        # aquire resource
-                        self.resources[instruction[1]] = False
+            if operation == Operation.Work:
+                pass
+                # todo: fix work interactions
 
-                elif instruction[0] == Operation.Malloc:
-                    new_page = self.pagemngr.make_page(0)
-                    self.remember.append((instruction[1], 0, new_page))
-                    self.pages.append(new_page)
+            self.ops[operation](arg1, arg2)
 
-                elif instruction[0] == Operation.Write:
-                    for i, var, val, page in enumerate(self.remember):
-                        if var == instruction[1]:
-                            self.remember[i] = (var, instruction[2], page)
-                            self.pagemngr.mem.set(page.addr, instruction[2])
+            self.program_counter += 1
 
-                elif instruction[0] == Operation.Read:
-                    for var, val, page in self.remember:
-                        if var == instruction[1]:
-                            if val == self.pagemngr.mem.get(page.addr):
-                                self.mem_consistency[instruction[1]] = True
-                            else:
-                                self.mem_consistency[instruction[1]] = False
+        leftover = 0
+        for op, a1, a2 in self.program:
+            if op == Operation.Work:
+                leftover += a1
+        leftover -= self.workdone
 
-                elif instruction[0] == Operation.Free:
-                    for var, val, page in self.remember:
-                        if var == instruction[1]:
-                            self.pagemngr.mem.free(page.addr)
-
-                elif instruction[0] == Operation.Release:
-                    if instruction[1] in self.resources.keys():
-                        # release resource
-                        self.resources.pop(instruction[1])
-
-                self.program_counter += 1
-        else:
-            raise exceptions.ProgramUnknownRun(
-                f'Unknown instruction to run {instruction[0]}, system extended?')
-
-        if self.program_counter >= len(self.program):
-            self.state = ProcessState.EXIT
-
+        self.state = ProcessState.EXIT
+        return leftover
 
     def serialize(self):
         # Return a JSON string that represents this object.
@@ -158,7 +173,7 @@ class Process:
         obj['ended'] = self.ended
         obj['workdone'] = self.workdone
         obj['program_counter'] = self.program_counter
-        obj['program'] = self.program
+        # obj['program'] = self.program
         obj['mem_consistency'] = self.mem_consistency
         return obj
 

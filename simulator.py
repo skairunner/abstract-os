@@ -2,7 +2,7 @@ from copy import deepcopy
 import json
 from memory import PhysicalMemory
 from page import PageManager
-from process import Scheduler, Process
+from process import Scheduler, Process, load_program_to_process
 
 
 """
@@ -48,8 +48,8 @@ class Simulation:
         self.current.time = timeused
         self.current.clock += timeused
 
-    def spawn_process(self, name):
+    def spawn_process(self, proc_spec):
         state = self.current
-        p = Process(state.pagemngr, state.pidcount, name=name, spawned_at=state.time)
+        p = load_program_to_process(state.pagemngr, state.pidcount, proc_spec.name, proc_spec.script, state.time)
         state.sched.admit(p)
         state.pidcount += 1

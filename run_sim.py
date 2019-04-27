@@ -117,7 +117,7 @@ class ScenarioInstance:
                 to_pop.append(key)
                 for process in processes:
                     # Spawn process
-                    self.simulation.spawn_process(process.name)
+                    self.simulation.spawn_process(process)
                     # If need to add more, queue up.
                     next_t = process.next()
                     if next_t is not None:
