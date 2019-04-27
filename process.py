@@ -8,54 +8,34 @@ import random
 
 
 class Operation(Enum):
-    Work = 1
-    Acquire = 2
-    Malloc = 3
-    Release = 4
-    Write = 5
-    Read = 6
-    Free = 7
+    WORK = 1
+    ACQUIRE = 2
+    MALLOC = 3
+    RELEASE = 4
+    WRITE = 5
+    READ = 6
+    FREE = 7
 
 
 # RESOURCES IN ACQUIRE SHOULD BE A PRE CONSTRUCTED ENUM FROM INIT AND SYSTEM DEFINITIONS
-def load_program_to_process(pagemngr, pid, name, scriptname, spawned_at=None):
-    new_proc = Process(pagemngr, pid, name=name, spawned_at=spawned_at)
+def load_program(scriptname):
+    program = []
     with open('programs/' + scriptname) as txt:
         for line in txt:
-            line = line.split()
-            instruction = []
-            op = line[0].lower()
-            if op == Operation.Work.name.lower():
-                instruction.append(Operation.Work)
-                instruction.append(int(line[1]))
-            elif op == Operation.Acquire.name.lower():
-                instruction.append(Operation.Acquire)
-                instruction.append(line[1])
-            elif op == Operation.Malloc.name.lower():
-                instruction.append(Operation.Malloc)
-                instruction.append(line[1])
-            elif op == Operation.Write.name.lower():
-                instruction.append(Operation.Write)
-                instruction.append(line[1])
-                instruction.append(int(line[2]))
-            elif op == Operation.Read.name.lower():
-                instruction.append(Operation.Read)
-                instruction.append(line[1])
-            elif op == Operation.Free.name.lower():
-                instruction.append(Operation.Free)
-                instruction.append(line[1])
-            elif op == Operation.Release.name.lower():
-                instruction.append(Operation.Release)
-                instruction.append(line[1])
-            else:
-                raise exceptions.ProgramParsingException(f"No operation named {line[0]}.")
+            instruction = line.split()
+            instruction[0] = Operation[instruction[0].upper()]
+            if instruction[0] == Operation.WORK:
+                instruction[1] = int(instruction[1])
+            elif instruction[0] == Operation.WRITE:
+                instruction[2] = int(instruction[2])
+            # Ensure instruction is at least len 3
             instruction += [''] * (3 - len(instruction))
-            new_proc.program.append(tuple(instruction))
-    return new_proc
+            program.append(tuple(instruction))
+    return program
 
 
 class Process:
-    def __init__(self, pagemngr, pid, *, initial_pages=1, name=None, spawned_at=None):
+    def __init__(self, pagemngr, scriptname, pid, *, initial_pages=1, name=None, spawned_at=None):
         self.pages = []
         self.pagemngr = pagemngr
         for i in range(initial_pages):
@@ -69,21 +49,20 @@ class Process:
 
         self.workdone = 0
         self.unfinished_work = 0
-        self.program = []
+        self.program = load_program(scriptname)
         self.program_counter = 0
-        # waiting on resources, {'Y':True,'X':False}
-        self.resources = {}
         # ('a', 10, pageref),
+        # Stores what data *should* be in a page. Helps with visualizing logic errors.
         self.remember = []
         self.mem_consistency = {}
         self.ops = {
-            Operation.Malloc: self._op_malloc,
-            Operation.Free: self._op_free,
-            Operation.Read: self._op_read,
-            Operation.Write: self._op_write,
-            Operation.Acquire: self._op_acquire,
-            Operation.Release: self._op_release,
-            Operation.Work: self._op_work,
+            Operation.MALLOC: self._op_malloc,
+            Operation.FREE: self._op_free,
+            Operation.READ: self._op_read,
+            Operation.WRITE: self._op_write,
+            Operation.ACQUIRE: self._op_acquire,
+            Operation.RELEASE: self._op_release,
+            Operation.WORK: self._op_work,
         }
 
     def _op_malloc(self, arg1, arg2):
@@ -110,14 +89,9 @@ class Process:
             if var == arg1:
                 self.pagemngr.mem.free(page.addr)
 
+    # TODO: Implement resource system
     def _op_acquire(self, arg1, arg2):
-        if arg1 in self.resources:
-            if not self.resources[arg1]:
-                self.state = ProcessState.BLOCKED
-                return 0
-        else:
-            # aquire resource
-            self.resources[arg1] = False
+        pass
 
     def _op_release(self, arg1, arg2):
         if arg1 in self.resources.keys():
@@ -132,34 +106,39 @@ class Process:
             self.pagemngr.free_page(page.uid)
         self.pages = []
 
+    """
+    The scheduler will call run() with the time slice. This is the maximum
+    cpu time that the process can use. run() must return the amount of its
+    slice that has been left unused, e.g. because it is blocked.
+    """
     def run(self, timestep):
-        # Temporary until proper page access logic exists
-        self.pagemngr.access_page(self.pages[0].uid)
-
-        if self.resources:
-            if not all(self.resources.values()):
-                self.state = ProcessState.BLOCKED
-                return 0
-
+        time_used = 0  # Time used in this slice
         while self.program_counter < len(self.program):
             operation, arg1, arg2 = self.program[self.program_counter]
 
-            if operation == Operation.Work:
-                pass
+            if operation == Operation.WORK:
+                # For work, arg1 is work duration
+                # Case: Done with this step of work
+                if self.unfinished_work + timestep - time_used >= arg1:
+                    # Since it is finished, set time and go to next line
+                    time_used += arg1 - self.unfinished_work
+                    self.unfinished_work = 0  # Reset memoed work
+                    self.program_counter += 1
+                    continue
+                # Case: Not done with this step of work
+                else:
+                    # Add the right amount of work to memo
+                    self.unfinished_work += timestep - time_used
+                    time_used = timestep
+                    return time_used
                 # todo: fix work interactions
+            else:
+                self.ops[operation](arg1, arg2)
+                self.program_counter += 1
 
-            self.ops[operation](arg1, arg2)
-
-            self.program_counter += 1
-
-        leftover = 0
-        for op, a1, a2 in self.program:
-            if op == Operation.Work:
-                leftover += a1
-        leftover -= self.workdone
-
+        # Program terminates here.
         self.state = ProcessState.EXIT
-        return leftover
+        return time_used
 
     def serialize(self):
         # Return a JSON string that represents this object.
@@ -207,7 +186,7 @@ class Scheduler:
         if process is None:
             return [None, timestep]  # Report that no process ran for slice
         process.state = ProcessState.RUNNING
-        timeused = timestep - process.run(timestep)
+        timeused = process.run(timestep)
         # do handling for finished process or i/o waiting
         if process.state == ProcessState.EXIT:
             self.terminate_process(self, process)

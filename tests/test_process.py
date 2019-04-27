@@ -1,28 +1,26 @@
 from memory import PhysicalMemory
 from page import PageManager
-from process import Process, load_program_to_process
+from process import Process, load_program, Operation
 from processstate import ProcessState
 import os
 
 
-def test_create_process():
-    mem = PhysicalMemory(1)
-    pm = PageManager(mem)
-    print(os.getcwd())
-    proc = load_program_to_process('../programs/prog1', pm, 1)
-    assert proc
+def test_load_program():
+    program = load_program('../programs/100work.process')
+    assert len(program) == 1
+    op, a1, a2 = program[0]
+    assert op == Operation.WORK
+    assert a1 == 100
 
 
 def test_process_run():
     mem = PhysicalMemory(1)
     pm = PageManager(mem)
-    proc = load_program_to_process('../programs/prog1', pm, 1)
+    proc = Process(pm, '../programs/100work.process', 1)
     proc.run(90)
-    assert proc.workdone == 90
+    assert proc.unfinished_work == 90
     proc.run(10)
-    # proc.run(1)
-    assert proc.workdone == 100
-    # assert proc.state == ProcessState.EXIT
+    assert proc.state == ProcessState.EXIT
 
 
 # def test_process_execution():
