@@ -6,8 +6,10 @@ import Debug from './DebugView';
 import Gantt from './Gantt';
 import Trendline from './Trendlines';
 import OverviewChart from './OverviewChart';
+import MemoryTimeline from './MemoryTimeline';
 import Timeline from './Timeline';
 import { arrmax, arrsum } from './utilities';
+import { TIMEWINDOW, TIMEBUCKET, ROLLING_WINDOW } from './constants';
 
 // Only returns elements that occured up to time ms ago
 function limit_by_time(source, time) {
@@ -83,6 +85,39 @@ function batch_steps(source, time, transform, callback) {
   return out;
 }
 
+// Divide memory info over time into continuous blocks for memory timeline
+function batch_memory(steps) {
+  let addrs = steps[0].mem.memory.map((d, i) => [{
+    data: d,
+    start: 0,
+    end: steps[0].clock,
+    addr: i
+  }]);
+  let flattened = addrs.flat();
+  if (steps.length === 1) {
+    return flattened;
+  }
+  for (let step of steps.slice(1)) {
+    step.mem.memory.forEach((d, i) => {
+      const last = addrs[i][addrs[i].length - 1];
+      if (last.data === d) {
+        last.end = step.clock;
+      } else {
+        // Otherwise make a new block
+        const block = {
+          data: d,
+          start: last.end,
+          end: step.clock,
+          addr: i
+        }
+        addrs[i].push(block);
+        flattened.push(block);
+      }
+    });
+  }
+  return flattened;
+}
+
 const keyMap = {
   FORWARD: 'right',
   BACKWARD: 'left',
@@ -91,9 +126,6 @@ const keyMap = {
   TO_END: ['command+right', 'ctrl+right'],
   TO_START: ['command+left', 'ctrl+left'],
 }
-const TIMEWINDOW = 10000; // the range of time to show in the trendlines
-const TIMEBUCKET = 200; // the granularity of time
-const ROLLING_WINDOW = 5;
 
 class App extends Component {
   constructor(props) {
@@ -106,6 +138,7 @@ class App extends Component {
     }
     this.rws = new ReconnectingWebSocket('ws://localhost:8765');
     this.rws.addEventListener('message', this.handleData);
+    this.mem_renders = {};
   }
 
   updateDimensions = () => {
@@ -125,14 +158,17 @@ class App extends Component {
     step.memdata = memdata;
     step.memtimerange = memtimerange;
 
+    // Process memory info for memory timeline
+    step.mem_history = batch_memory(steps);
+
     // Page faults
     const faultdata = batch_steps(last_10s, TIMEBUCKET, d => d.pagemngr.faults, ds => arrsum(ds));
     const faultmax = arrmax(faultdata, d => d[1])[1];
-    step.faultrange = [0, faultmax == 0 ? 1 : faultmax];
+    step.faultrange = [0, faultmax === 0 ? 1 : faultmax];
     end = faultdata[faultdata.length - 1][0];
     // assign rolling average
     step.faultdata = rolling_average(faultdata, ROLLING_WINDOW);
-    step.faulttimerange = [Math.max(0, end - TIMEWINDOW), Math.max(10000, end)];
+    step.faulttimerange = [Math.max(0, end - TIMEWINDOW), Math.max(TIMEWINDOW, end)];
 
     // Also save last 1s for Gantt
     step.last_1s = limit_by_time(steps, 1000);
@@ -140,19 +176,22 @@ class App extends Component {
 
   handleData = (event) => {
     let results = JSON.parse(event.data);
-    this.setState(oldstate => {
-      let state = {...oldstate};
-      state.steps = oldstate.steps.slice(0);
-      for (let step of results) {
+    if (results.type === 'new') {
+      this.setState(oldstate => ({...oldstate, is_on: -1, steps: []}));
+    }
+    for (let step of results.history) {
+      this.setState(oldstate => {
+        let state = {...oldstate};
+        state.steps = oldstate.steps.slice(0);
         step.pagemngr.pages = step.pagemngr.pages.filter(d => !d.freed);
         // Process data
         state.steps.push(step);
         this.preprocessData(state.steps, step);
-      }
-      state.steps.sort((d1, d2) => d1.clock - d2.clock)
-      state.is_on = state.steps.length - 1;
-      return state;
-    })
+        state.steps.sort((d1, d2) => d1.clock - d2.clock)
+        state.is_on = state.steps.length - 1;
+        return state;
+      })
+    }
   }
 
   do_step = (n) => {
@@ -192,7 +231,6 @@ class App extends Component {
   }
 
   render() {
-
     const handlers = {
       FORWARD: e => this.do_step(1),
       BACKWARD: e => this.do_step(-1),
@@ -249,11 +287,23 @@ class App extends Component {
               caption='Page faults'
               absolute />
           </div>
-          <div className='main_container'>
-            <OverviewChart width={800} height={OVERVIEW_HEIGHT} state={this_step} />
-            <Gantt width={800} height={50} steps={this_step.last_1s} />
+          <div className='columns'>
+            <div className='main_container col'>
+              <OverviewChart width={800} padding_left={24} height={OVERVIEW_HEIGHT} state={this_step} mem_renders={this.mem_renders} />
+              <Gantt width={800} height={50} steps={this_step.last_1s} />
+              <Debug state={this_step} />
+            </div>
+            <div className='memtimeline_container col'>
+              <MemoryTimeline
+                key={this.state.is_on}
+                width={200}
+                height={OVERVIEW_HEIGHT}
+                clock={this_step.clock}
+                framecount={this_step.mem.framecount}
+                mem_renders={this.mem_renders}
+                mem_history={this_step.mem_history} />
+            </div>
           </div>
-          <Debug state={this_step} />
         </HotKeys>
       </div>
     );

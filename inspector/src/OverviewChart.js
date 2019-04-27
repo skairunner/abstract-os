@@ -10,10 +10,12 @@ function Frame(props) {
   const w = props.memory_scale(props.addr + 1) - x;
   const tilesize = Math.max(2, Math.floor(w / 5));
   const pattern = generate_mempattern(w, props.height, props.data, tilesize);
-  props.memcolors[props.addr] = pattern.color;
+  props.mem_renders[props.data] = pattern;
+  const dark_rect = <rect className='dark_mem' width={w} height={props.height} opacity={props.darken ? 1 : 0} />
   return (
     <g className='memframe' transform={`translate(${x}, 0)`}>
       <image y={1} width={w} height={props.height - 2} xlinkHref={pattern.imgurl} />
+      {dark_rect}
       <text x={w / 2} y={props.height - 2} fill='black' textAnchor='middle'>{props.addr}</text>
     </g>
   )
@@ -26,12 +28,17 @@ function MemoryBar(props) {
       data={d}
       addr={i}
       height={props.height}
-      memcolors={props.memcolors}
-      memory_scale={props.memory_scale}/>
+      mem_renders={props.mem_renders}
+      memory_scale={props.memory_scale}
+      darken={!props.mem_is_reffed.has(i)}/>
   ));
+  const w = props.memory_scale.range()[1];
   return (
     <g className='memory_bar'>
-      <rect width={props.memory_scale.range()[1]} height={props.height} />
+      <text
+        className='label'
+        transform={`translate(-2, ${props.height / 2}) rotate(-90)`}>MEMORY</text>
+      <rect width={w} height={props.height} />
       {frames}
     </g>
   )
@@ -66,6 +73,7 @@ function Pages(props) {
   ))
   return (
     <g className='Pages' transform={`translate(0, ${props.y})`}>
+      <text className='label' transform={`translate(-2, ${props.height / 2}) rotate(-90)`}>PAGES</text>
       {pages}
     </g>
   )
@@ -78,6 +86,7 @@ function Processes(props) {
 
   return (
     <g className='Processes' transform={`translate(0, ${props.y})`}>
+      <text className='label' transform={`translate(-2, ${props.height / 2}) rotate(-90)`}>PROCESSES</text>
       {procs}
     </g>
   )
@@ -97,7 +106,7 @@ function MemToPageLines(props) {
     let x0 = props.memory_scale(d.addr + .5);
     let y = scale(i + 0.5); // The height in the bundle of this line
     let x1 = props.page_scale(d.uid) + props.page_scale.bandwidth() / 2;
-    let col = d3color.hsl(props.memcolors[d.addr]);
+    let col = d3color.hsl(props.mem_renders[props.mem.memory[d.addr]].color);
     col.l = Math.max(0, col.l - 0.2);
     return (
       <path
@@ -146,7 +155,8 @@ export default function OverviewChart(props) {
   // Destructuring to set defaults for missing values
   const {
     padding_h = 0,
-    padding_w = 0
+    padding_w = 0,
+    padding_left = 0
   } = props;
 
   const state = props.state;
@@ -155,8 +165,7 @@ export default function OverviewChart(props) {
   }
   const processes = state.scheduler.processes;
 
-  const limitX = props.width - 2 * padding_w;
-  const limitY = props.height - 2 * padding_h;
+  const limitX = props.width - 2 * padding_w - padding_left;
   const memory_scale = d3scale.scaleLinear([0, state.mem.framecount], [0, limitX - 1]);
 
   // First define process's band. Divide horizontal space into minimum 5 areas.
@@ -183,10 +192,13 @@ export default function OverviewChart(props) {
     }
   }
   // Insert all pages that don't have owners
+  let is_referenced = new Set(); // In order to darken un-referenced memory
   state.pagemngr.pages.forEach(d => {
     if (!did_put_page.has(d.uid)) {
       page_uids.push(d.uid)
     }
+    if (!d.freed)
+      is_referenced.add(d.addr);
   });
 
   // Add extra pages if needed, to have a minimum block width
@@ -207,44 +219,45 @@ export default function OverviewChart(props) {
     ['proc', 2]
   ], [0, props.height]);
 
-  // Make an array to store frame colors in.
-  let memcolors = state.mem.memory.map(d => '');
-
   return (
     <svg width={props.width} height={props.height}>
+    <g transform={`translate(${padding_left + padding_w}, 0)`}>
       <MemoryBar
-        mem={state.mem}
-        memory_scale={memory_scale}
-        height={vscale.bandwidth('mem')}
-        memcolors={memcolors} />
-      <MemToPageLines
-        pagemngr={state.pagemngr}
-        page_scale={page_scale}
-        memory_scale={memory_scale}
-        memcolors={memcolors}
-        height={vscale.bandwidth('mem-page')}
-        bundle_proportion = {0.4}
-        y={vscale('mem-page')}
-      />
-      <Pages
-        processes={processes}
-        pagemngr={state.pagemngr}
-        page_scale={page_scale}
-        memory_scale={memory_scale}
-        height={vscale.bandwidth('page')}
-        y={vscale('page')} />
-      <PageToProcLines
-        processes={processes}
-        pagemngr={state.pagemngr}
-        page_scale={page_scale}
-        process_scale={process_scale}
-        vscale={vscale} />
-      <Processes
-        processes={processes}
-        process_scale={process_scale}
-        memory_scale={memory_scale}
-        height={vscale.bandwidth('proc')}
-        y={vscale('proc')} />
+          mem={state.mem}
+          memory_scale={memory_scale}
+          height={vscale.bandwidth('mem')}
+          mem_renders={props.mem_renders}
+          mem_is_reffed={is_referenced} />
+        <MemToPageLines
+          pagemngr={state.pagemngr}
+          page_scale={page_scale}
+          memory_scale={memory_scale}
+          mem={state.mem}
+          mem_renders={props.mem_renders}
+          height={vscale.bandwidth('mem-page')}
+          bundle_proportion = {0.4}
+          y={vscale('mem-page')}
+        />
+        <Pages
+          processes={processes}
+          pagemngr={state.pagemngr}
+          page_scale={page_scale}
+          memory_scale={memory_scale}
+          height={vscale.bandwidth('page')}
+          y={vscale('page')} />
+        <PageToProcLines
+          processes={processes}
+          pagemngr={state.pagemngr}
+          page_scale={page_scale}
+          process_scale={process_scale}
+          vscale={vscale} />
+        <Processes
+          processes={processes}
+          process_scale={process_scale}
+          memory_scale={memory_scale}
+          height={vscale.bandwidth('proc')}
+          y={vscale('proc')} />
+    </g>
     </svg>
   )
 }

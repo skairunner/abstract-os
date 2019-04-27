@@ -6,6 +6,7 @@ export function get_rel_coords(event) {
   return {x: event.pageX - rect.left, y: event.pageY - rect.top}
 }
 
+const THUMB_PIXEL = 5;
 let pattern_memo = new Map();
 export function generate_mempattern(w, h, seed, pixelsize=5) {
   const hash = seed;
@@ -17,20 +18,20 @@ export function generate_mempattern(w, h, seed, pixelsize=5) {
   const color = seed === 0 ? '#777' : palettes.schemeSet3[rng.range(0, 11) % 12];
 
   // Mirror a smaller pixel pattern, then blow it up pixelsize amount times
-  const small_x = Math.floor(w / pixelsize);
-  const small_y = Math.floor(h / pixelsize);
+  const small_w = Math.floor(w / pixelsize);
+  const small_h = Math.floor(h / pixelsize);
   // Calc offsets
   const paddingX = Math.floor((w % pixelsize) / 2);
   const paddingY = Math.floor((h % pixelsize) / 2);
-  let smallpixels = Array.from(small_x * small_y);
-  for (let y = 0; y < small_y; y++) {
-    for (let x = 0; x < small_x; x++) {
-      if (x < Math.ceil(small_x / 2.0)) {
+  let smallpixels = Array.from(small_w * small_h);
+  for (let y = 0; y < small_h; y++) {
+    for (let x = 0; x < small_w; x++) {
+      if (x < Math.ceil(small_w / 2.0)) {
         // Up to halfway point, place pixels
-        smallpixels[x + y * small_x] = rng.uniform() < 0.5;
+        smallpixels[x + y * small_w] = rng.uniform() < 0.5;
       } else {
         // otherwise, mirror pixels
-        smallpixels[x + y * small_x] = smallpixels[small_x - x - 1 + y * small_x];
+        smallpixels[x + y * small_w] = smallpixels[small_w - x - 1 + y * small_w];
       }
     }
   }
@@ -48,25 +49,40 @@ export function generate_mempattern(w, h, seed, pixelsize=5) {
   // console.log(matrix.join('\n'));
 
   let canvas = document.createElement('canvas');
+  let mini = document.createElement('canvas'); // For the 'thumbnail' version
   canvas.width = w;
   canvas.height = h;
+  mini.width = small_w * THUMB_PIXEL;
+  mini.height = small_h * THUMB_PIXEL;
   let ctx = canvas.getContext('2d');
+  let mini_ctx = mini.getContext('2d');
+  // Fill thumbnail
+  mini_ctx.fillStyle = color;
+  mini_ctx.fillRect(0, 0, THUMB_PIXEL * small_w, THUMB_PIXEL * small_h);
+  mini_ctx.fillStyle = 'white';
   // Fill the entire canvas bc. there may be non-pixel spaces that still need color
   ctx.fillStyle = color;
   ctx.fillRect(0, 0, w, h);
   ctx.fillStyle = 'white';
-  for (let y = 0; y < small_y; y++) {
-    for (let x = 0; x < small_x; x++) {
-      if (!smallpixels[x + y * small_x]) {
+  for (let y = 0; y < small_h; y++) {
+    for (let x = 0; x < small_w; x++) {
+      if (!smallpixels[x + y * small_w]) {
         // Spots that should be empty are painted white
         ctx.fillRect(paddingX + x * pixelsize, paddingY + y * pixelsize, pixelsize, pixelsize);
+        mini_ctx.fillRect(x * THUMB_PIXEL, y * THUMB_PIXEL, THUMB_PIXEL, THUMB_PIXEL);
       }
     }
   }
 
   // Memoize and return
   let imgurl = canvas.toDataURL();
-  let pattern = {imgurl: imgurl, color};
+  let thumburl = mini.toDataURL();
+  let pattern = {
+    imgurl, color, thumburl,
+    imgdim: {w, h},
+    thumbdim: {w: small_w * THUMB_PIXEL, h: small_h * THUMB_PIXEL},
+    key
+  };
   pattern_memo.set(key, pattern);
   return pattern;
 }

@@ -17,5 +17,5 @@
 }
 
 .gantt_block>rect {
-  opacity: 1;
+  opacity: .8;
 }

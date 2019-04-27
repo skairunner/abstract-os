@@ -1,3 +1,6 @@
+# Node stuff
+node_modules/
+
 ## Python generated files
 # Byte-compiled / optimized / DLL files
 __pycache__/

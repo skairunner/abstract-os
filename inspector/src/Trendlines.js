@@ -37,8 +37,8 @@ export default function Trendline(props) {
 
 
   let datum;
-  if (props.absolute) datum = (<figcaption>{props.data.length != 0 ? props.data[props.data.length - 1][1] : 0}{unit}</figcaption>)
-  else datum = (<figcaption>{props.data.length != 0 ? Math.floor(props.data[props.data.length - 1][1] * 100) : 0}{unit}</figcaption>)
+  if (props.absolute) datum = (<figcaption>{props.data.length !== 0 ? props.data[props.data.length - 1][1] : 0}{unit}</figcaption>)
+  else datum = (<figcaption>{props.data.length !== 0 ? Math.floor(props.data[props.data.length - 1][1] * 100) : 0}{unit}</figcaption>)
 
 
   return (

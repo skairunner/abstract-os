@@ -97,12 +97,13 @@ class ScenarioInstance:
         self.insertbuffer = insertbuffer
         self.simulation = Simulation(memorysize=scenario.memory)
 
-    def serialized(self, count=1):
+    def serialized(self, count=1, isUpdate=True):
         history = []
         if count > 1:
             history = [x.serialize() for x in self.simulation.history[-count + 1:]]
         history.append(self.simulation.current.serialize())
-        return json.dumps(history)
+        obj = {'type': 'update' if isUpdate else 'new', 'history': history}
+        return json.dumps(obj)
 
     def step(self, steps):
         for i in range(steps):
@@ -134,7 +135,7 @@ if __name__ == '__main__':
 
     async def listen(websocket, path):
         sim = ScenarioInstance(Scenario(sys.argv[1]))
-        await websocket.send(sim.serialized())
+        await websocket.send(sim.serialized(isUpdate=False))
         async for message in websocket:
             data = json.loads(message)
             steps = data['steps']
