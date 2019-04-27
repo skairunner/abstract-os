@@ -22,6 +22,14 @@ def test_process_run():
     proc.run(10)
     assert proc.state == ProcessState.EXIT
 
+def test_process_run_two_segments():
+    mem = PhysicalMemory(1)
+    pm = PageManager(mem)
+    proc = Process(pm, '../programs/two_fifties.process', 1)
+    proc.run(100)
+    assert proc.state == ProcessState.EXIT
+    assert proc.program_counter == 2
+
 
 # def test_process_execution():
 #     pass
