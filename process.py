@@ -22,6 +22,7 @@ def load_program(scriptname):
     program = []
     with open('programs/' + scriptname) as txt:
         for line in txt:
+            if line[0] == '#': continue
             instruction = line.split()
             instruction[0] = Operation[instruction[0].upper()]
             if instruction[0] == Operation.WORK:
