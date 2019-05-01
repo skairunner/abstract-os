@@ -1,0 +1,65 @@
+[system]
+memory = 48
+
+[[run_once]]
+name = 'bash'
+script = 'bash.process'
+offset = 0
+
+[[run_once]]
+name = 'gcc'
+script = 'gcc.process'
+offset = 5
+
+[[run_once]]
+name = 'gcc'
+script = 'gcc.process'
+offset = 5
+
+[[run_once]]
+name = 'ls'
+script = 'ls.process'
+offset = 25
+
+[[run_once]]
+name = 'a.out'
+script = 'a.out.process'
+offset = 26
+
+[[run_once]]
+name = 'ls'
+script = 'ls.process'
+offset = 53
+
+[[run_once]]
+name = 'ls'
+script = 'ls.process'
+offset = 57
+
+[[run_once]]
+name = 'rm'
+script = 'rm.process'
+offset = 59
+
+[[run_once]]
+name = 'vim'
+script = 'emacs.process'
+offset = 60
+
+
+[[run_every]]
+name = 'cron'
+script = 'cron.process'
+offset = 5
+interval = 12
+limit = 0
+
+
+[[run_rand]]
+name = 'usbmux'
+script = 'usbmux.process'
+offset = 0
+minimum = 0
+maximum = 90
+limit = 2
+

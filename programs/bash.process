@@ -1,0 +1,52 @@
+work 2
+malloc BUF
+work 6
+
+#acquire config_ptr
+work 3
+work 5
+write BUF 38
+write BUF 23
+read BUF
+#release config_ptr
+work 44
+malloc CMD1
+work 1
+write CMD1 23
+malloc CMD2
+write CMD2 55
+malloc CMD3
+write CM3 88
+work 1
+malloc CMD4
+work 1
+write CMD4 98
+read CMD4
+read CMD3
+read CMD3
+read CMD1
+work 4
+read CMD2
+malloc CMD5
+write CMD5 566
+malloc CMD6
+read CMD5
+malloc CMD7
+malloc CMD8
+malloc CMD9
+malloc CMD10
+
+write CMD1 411
+write CMD2 41
+write CMD3 41
+write CMD4 41
+work 1
+write TXT6 41
+work 1
+write TXT7 41
+work 1
+write TXT8 41
+work 1
+
+
+work 38

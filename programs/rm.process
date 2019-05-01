@@ -1,0 +1,6 @@
+malloc B
+work 1
+write B 0
+work 1
+free B
+work 1

@@ -1,0 +1,37 @@
+work 2
+malloc BUF
+work 6
+#acquire file_ptr
+malloc TXT1
+work 1
+malloc TXT2
+work 1
+malloc TXT3
+work 1
+malloc TXT4
+work 1
+malloc TXT5
+malloc TXT6
+malloc TXT7
+malloc TXT8
+write TXT1 41
+write TXT2 41
+write TXT3 41
+write TXT4 41
+write TXT5 41
+work 1
+write TXT6 41
+work 1
+write TXT7 41
+work 1
+write TXT8 41
+work 1
+work 3
+work 5
+write BUF 38
+write BUF 23
+work 44
+#release file_ptr
+
+
+work 38

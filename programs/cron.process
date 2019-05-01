@@ -1,0 +1,6 @@
+work 1
+malloc A
+write A 23
+read A
+free A
+work 2

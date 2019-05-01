@@ -1,0 +1,30 @@
+malloc BUF
+write BUF 202
+work 20
+read BUF
+free BUF
+malloc BUF
+write BUF 202
+work 20
+read BUF
+free BUF
+malloc BUF
+write BUF 202
+work 20
+read BUF
+free BUF
+malloc BUF
+write BUF 202
+work 20
+read BUF
+free BUF
+malloc BUF
+write BUF 202
+work 20
+read BUF
+free BUF
+malloc BUF
+write BUF 202
+work 20
+read BUF
+free BUF
