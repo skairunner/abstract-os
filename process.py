@@ -19,10 +19,11 @@ class Operation(Enum):
 
 # RESOURCES IN ACQUIRE SHOULD BE A PRE CONSTRUCTED ENUM FROM INIT AND SYSTEM DEFINITIONS
 def load_program(scriptname):
+    if not scriptname: return [(Operation.WORK, 10, '')]
     program = []
     with open('programs/' + scriptname) as txt:
         for line in txt:
-            if line[0] == '#': continue
+            if line[0] == '#' or line == '\n': continue
             instruction = line.split()
             instruction[0] = Operation[instruction[0].upper()]
             if instruction[0] == Operation.WORK:
@@ -71,7 +72,7 @@ class Process:
         self.pages.append(new_page)
 
     def _op_write(self, arg1, arg2):
-        for i, var, val, page in enumerate(self.remember):
+        for i, (var, val, page) in enumerate(self.remember):
             if var == arg1:
                 self.remember[i] = (var, arg2, page)
                 self.pagemngr.mem.set(page.addr, arg2)
