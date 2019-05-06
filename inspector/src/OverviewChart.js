@@ -198,7 +198,7 @@ export default function OverviewChart(props) {
   // Insert all pages that don't have owners
   let is_referenced = new Set(); // In order to darken un-referenced memory
   pages.forEach(d => {
-    if (!did_put_page.has(d.uid)) {
+    if (did_put_page.has(d.uid)) {
       is_referenced.add(d.addr);
     }
   });
