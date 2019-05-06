@@ -291,7 +291,7 @@ class App extends Component {
             <div className='main_container col'>
               <OverviewChart width={800} padding_left={24} height={OVERVIEW_HEIGHT} state={this_step} mem_renders={this.mem_renders} />
               <Gantt width={800} height={50} steps={this_step.last_1s} />
-              <Debug state={this_step} />
+              <Debug width={800} state={this_step} />
             </div>
             <div className='memtimeline_container col'>
               <MemoryTimeline

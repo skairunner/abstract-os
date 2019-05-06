@@ -7,8 +7,8 @@ export default function Debug(props) {
     return null;
   }
   return (
-    <div>
-      <p>Freelist: {JSON.stringify(props.state.mem.freelist)}</p>
+    <div width={props.width}>
+      <p width='100%'>Freelist: {props.state.mem.freelist.join(', ')}</p>
       <p>Total page faults: {props.state.pagemngr.ttl_faults}</p>
     </div>
   )
