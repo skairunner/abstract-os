@@ -68,7 +68,7 @@ function Process(props) {
 }
 
 function Pages(props) {
-  const pages = props.pagemngr.pages.map((d, i) => (
+  const pages = props.pages.map((d, i) => (
     <Page key={i} page={d} scale={props.page_scale} height={props.height} />
   ))
   return (
@@ -95,7 +95,7 @@ function Processes(props) {
 // Draws vertical-flat-vertical shaped lines, where the flats are in a small area
 // and don't overlap.
 function MemToPageLines(props) {
-  const pages = props.pagemngr.pages;
+  const pages = props.pages;
   const bundle_top = props.height * props.bundle_proportion / 2;
   const bundle_bot = props.height * (1 - props.bundle_proportion / 2)
   let scale = d3scale.scaleLinear([0, pages.length], [bundle_top, bundle_bot]);
@@ -133,7 +133,7 @@ function PageToProcLines(props) {
     }
   }
   // For each page, draw a line from the center of the page to the center of the process.
-  let lines = props.pagemngr.pages.map((d, i) => {
+  let lines = props.pages.map((d, i) => {
     if (!pidFromUid.has(d.uid)) return null;
     const pid = pidFromUid.get(d.uid);
     let args = {
@@ -187,24 +187,27 @@ export default function OverviewChart(props) {
     for (let pageid of process.pages) {
       if (!did_put_page.has(pageid)) {
         did_put_page.add(pageid);
-        page_uids.push(pageid);
+        // If the page is freed, don't add it
+        if (!state.pagemngr.pages[pageid].freed) {
+          page_uids.push(pageid);
+        }
       }
     }
   }
+  const pages = state.pagemngr.pages.filter(d => !d.freed);
   // Insert all pages that don't have owners
   let is_referenced = new Set(); // In order to darken un-referenced memory
-  state.pagemngr.pages.forEach(d => {
+  pages.forEach(d => {
     if (!did_put_page.has(d.uid)) {
-      page_uids.push(d.uid)
-    }
-    if (!d.freed)
       is_referenced.add(d.addr);
+    }
   });
 
   // Add extra pages if needed, to have a minimum block width
   for (let i = 0; i <= 5 - page_uids.length; i++) {
     page_uids.push('placeholder' + i);
   }
+  console.log(pages, page_uids)
   let page_scale = d3scale.scaleBand(
       page_uids,
       memory_scale.range())
@@ -229,7 +232,7 @@ export default function OverviewChart(props) {
           mem_renders={props.mem_renders}
           mem_is_reffed={is_referenced} />
         <MemToPageLines
-          pagemngr={state.pagemngr}
+          pages={pages}
           page_scale={page_scale}
           memory_scale={memory_scale}
           mem={state.mem}
@@ -240,14 +243,14 @@ export default function OverviewChart(props) {
         />
         <Pages
           processes={processes}
-          pagemngr={state.pagemngr}
+          pages={pages}
           page_scale={page_scale}
           memory_scale={memory_scale}
           height={vscale.bandwidth('page')}
           y={vscale('page')} />
         <PageToProcLines
           processes={processes}
-          pagemngr={state.pagemngr}
+          pages={pages}
           page_scale={page_scale}
           process_scale={process_scale}
           vscale={vscale} />

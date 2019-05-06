@@ -183,7 +183,6 @@ class App extends Component {
       this.setState(oldstate => {
         let state = {...oldstate};
         state.steps = oldstate.steps.slice(0);
-        step.pagemngr.pages = step.pagemngr.pages.filter(d => !d.freed);
         // Process data
         state.steps.push(step);
         this.preprocessData(state.steps, step);

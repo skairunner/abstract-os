@@ -102,7 +102,7 @@ class Process:
         if varname not in self.right_data:
             raise exceptions.ProgramFreeBeforeMalloc(script=self.scriptname, varname=varname, line=self.program_counter + 1)
         page = self.right_data[varname][1]
-        self.pagemngr.free_page(page.id)
+        self.pagemngr.free_page(page.uid)
 
     # TODO: Implement resource system
     def _op_acquire(self, arg1, arg2):
