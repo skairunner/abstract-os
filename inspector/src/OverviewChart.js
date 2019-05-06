@@ -207,7 +207,6 @@ export default function OverviewChart(props) {
   for (let i = 0; i <= 5 - page_uids.length; i++) {
     page_uids.push('placeholder' + i);
   }
-  console.log(pages, page_uids)
   let page_scale = d3scale.scaleBand(
       page_uids,
       memory_scale.range())
