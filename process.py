@@ -19,7 +19,8 @@ class Operation(Enum):
 
 # RESOURCES IN ACQUIRE SHOULD BE A PRE CONSTRUCTED ENUM FROM INIT AND SYSTEM DEFINITIONS
 def load_program(scriptname):
-    if not scriptname: return [(Operation.WORK, 10, '')]
+    if not scriptname:
+        return [(Operation.WORK, 100, '')]
     program = []
     with open('programs/' + scriptname) as txt:
         for line in txt:
@@ -50,11 +51,12 @@ class Process:
         self.extra = None
 
         self.unfinished_work = 0
+        self.scriptname = scriptname
         self.program = load_program(scriptname)
         self.program_counter = 0
         # ('a', 10, pageref),
         # Stores what data *should* be in a page. Helps with visualizing logic errors.
-        self.remember = []
+        self.right_data = {}
         self.mem_consistency = {}
         self.ops = {
             Operation.MALLOC: self._op_malloc,
@@ -66,29 +68,41 @@ class Process:
             Operation.WORK: self._op_work,
         }
 
-    def _op_malloc(self, arg1, arg2):
+    def read_var(self, varname):
+        info = self.right_data[varname]
+        val = self.pagemngr.mem.get(info[1].addr)
+        if val != info[0]:
+            self.mem_consistency[varname] = False
+        return val
+
+    def write_var(self, varname, value):
+        info = self.right_data[varname]
+        info[0] = value
+        self.pagemngr.mem.set(info[1].addr, value)
+
+    def _op_malloc(self, varname, arg2):
         new_page = self.pagemngr.make_page(0)
-        self.remember.append((arg1, 0, new_page))
+        # [0] is the correct data, [1] is a ref to the page obj
+        self.right_data[varname] = [0, new_page]
+        self.mem_consistency[varname] = True
         self.pages.append(new_page)
 
-    def _op_write(self, arg1, arg2):
-        for i, (var, val, page) in enumerate(self.remember):
-            if var == arg1:
-                self.remember[i] = (var, arg2, page)
-                self.pagemngr.mem.set(page.addr, arg2)
+    def _op_write(self, varname, value):
+        if varname in self.right_data:
+            self.write_var(varname, value)
+        else:
+            raise exceptions.ProgramWriteBeforeMalloc(script=self.scriptname, varname=varname, line=self.program_counter + 1)
 
-    def _op_read(self, arg1, arg2):
-        for var, val, page in self.remember:
-            if var == arg1:
-                if val == self.pagemngr.mem.get(page.addr):
-                    self.mem_consistency[arg1] = True
-                else:
-                    self.mem_consistency[arg1] = False
+    def _op_read(self, varname, _):
+        if varname not in self.right_data:
+            raise exceptions.ProgramReadBeforeMalloc(script=self.scriptname, varname=varname, line=self.program_counter + 1)
+        self.read_var(varname)
 
-    def _op_free(self, arg1, arg2):
-        for var, val, page in self.remember:
-            if var == arg1:
-                self.pagemngr.mem.free(page.addr)
+    def _op_free(self, varname, _):
+        if varname not in self.right_data:
+            raise exceptions.ProgramFreeBeforeMalloc(script=self.scriptname, varname=varname, line=self.program_counter + 1)
+        page = self.right_data[varname][1]
+        self.pagemngr.free_page(page.id)
 
     # TODO: Implement resource system
     def _op_acquire(self, arg1, arg2):
