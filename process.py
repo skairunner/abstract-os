@@ -20,7 +20,7 @@ class Operation(Enum):
 # RESOURCES IN ACQUIRE SHOULD BE A PRE CONSTRUCTED ENUM FROM INIT AND SYSTEM DEFINITIONS
 def load_program(scriptname):
     if not scriptname:
-        return [(Operation.WORK, 100, '')]
+        return [(Operation.WORK, 1000, '')]
     program = []
     with open('programs/' + scriptname) as txt:
         for line in txt:
@@ -70,15 +70,17 @@ class Process:
 
     def read_var(self, varname):
         info = self.right_data[varname]
-        val = self.pagemngr.mem.get(info[1].addr)
+        addr = self.pagemngr.access_page(info[1].uid)
+        val = self.pagemngr.mem.get(addr)
         if val != info[0]:
             self.mem_consistency[varname] = False
         return val
 
     def write_var(self, varname, value):
         info = self.right_data[varname]
+        addr = self.pagemngr.access_page(info[1].uid)
         info[0] = value
-        self.pagemngr.mem.set(info[1].addr, value)
+        self.pagemngr.mem.set(addr, value)
 
     def _op_malloc(self, varname, arg2):
         new_page = self.pagemngr.make_page(0)
@@ -113,8 +115,9 @@ class Process:
             # release resource
             self.resources.pop(arg1)
 
-    def _op_work(self, arg1, arg2):
-        pass
+    def _op_work(self):
+        # make sure to access the 'program data'
+        self.pagemngr.access_page(self.pages[0].uid)
 
     def free_memory(self):
         for page in self.pages:
@@ -132,6 +135,7 @@ class Process:
             operation, arg1, arg2 = self.program[self.program_counter]
 
             if operation == Operation.WORK:
+                self._op_work()
                 # For work, arg1 is work duration
                 # Case: Done with this step of work
                 if self.unfinished_work + timestep - time_used >= arg1:
