@@ -8,7 +8,7 @@ export default function Debug(props) {
   }
   return (
     <div width={props.width}>
-      <p width='100%'>Freelist: {props.state.mem.freelist.join(', ')}</p>
+      <p style={{width: props.width + 'px'}}>Freelist: {props.state.mem.freelist.join(', ')}</p>
       <p>Total page faults: {props.state.pagemngr.ttl_faults}</p>
     </div>
   )
