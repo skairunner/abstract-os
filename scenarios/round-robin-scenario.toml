@@ -1,5 +1,5 @@
 [system]
-memory = 48
+memory = 24
 
 [[run_once]]
 name = 'bash'
