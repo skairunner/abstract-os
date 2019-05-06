@@ -136,7 +136,12 @@ class App extends Component {
       width: 600,
       height: 600
     }
-    this.rws = new ReconnectingWebSocket('ws://localhost:8765');
+    const urlParams = new URLSearchParams(window.location.search);
+    let port = urlParams.get('port');
+    if (port === null) {
+      port = '8765';
+    }
+    this.rws = new ReconnectingWebSocket(`ws://localhost:${port}`);
     this.rws.addEventListener('message', this.handleData);
     this.mem_renders = {};
   }
