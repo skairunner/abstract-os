@@ -1,6 +1,6 @@
 malloc B
-work 1
+work 100
 write B 0
-work 1
+work 100
 free B
-work 1
+work 100

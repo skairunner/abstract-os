@@ -1,6 +1,6 @@
-work 1
+work 100
 malloc A
 write A 23
 read A
 free A
-work 2
+work 200

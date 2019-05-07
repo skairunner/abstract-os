@@ -5,94 +5,55 @@ write SRC 142
 read SRC
 #release src_file
 read IL
-work 5
+work 50
 write IL 1
 read IL
-work 5
+work 50
 write IL 2
 read IL
-work 5
+work 50
 write IL 3
 read IL
-work 5
+work 50
 write IL 4
 read IL
-work 5
+work 50
 write IL 5
 read IL
-work 5
+work 50
 write IL 6
 read IL
-work 5
+work 50
 write IL 7
 read IL
-work 5
+work 50
 write IL 8
 read IL
-work 5
+work 50
 write IL 9
 read IL
-work 5
+work 50
 write IL 10
 read IL
-work 5
+work 50
 write IL 11
 read IL
-work 5
+work 50
 write IL 12
 read IL
-work 5
+work 50
 write IL 13
 read IL
-work 5
+work 50
 write IL 14
-read IL
-work 5
-write IL 15
-read IL
-work 5
-write IL 16
-read IL
-work 5
-write IL 17
-read IL
-work 5
-write IL 18
-read IL
-work 5
-write IL 19
-read IL
-work 5
-write IL 20
-read IL
-work 5
-write IL 21
-read IL
-work 5
-write IL 22
-read IL
-work 5
-write IL 23
-read IL
-work 5
-write IL 24
-read IL
-work 5
-write IL 25
-read IL
-work 5
-write IL 26
-read IL
-work 5
-write IL 27
-read IL
-work 5
-write IL 28
-read IL
+
 malloc F_BUF
 #aquire dst_file
 write F_BUF 9999
-work 2
+work 200
 #release dst_file
 
-
+free IL
+work 120
+free SRC
+work 200

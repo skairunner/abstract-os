@@ -1,4 +1,4 @@
-work 100
+work 10000
 acquire Y
 malloc a
 write a 10

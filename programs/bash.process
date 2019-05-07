@@ -1,31 +1,31 @@
-work 2
+work 200
 malloc BUF
-work 6
+work 600
 
 #acquire config_ptr
-work 3
-work 5
+work 300
+work 500
 write BUF 38
 write BUF 23
 read BUF
 #release config_ptr
-work 44
+work 4400
 malloc CMD1
-work 1
+work 100
 write CMD1 23
 malloc CMD2
 write CMD2 55
 malloc CMD3
 write CMD3 88
-work 1
+work 100
 malloc CMD4
-work 1
-write CMD4 98
+work 100
+write CMD4 9800
 read CMD4
 read CMD3
 read CMD3
 read CMD1
-work 4
+work 400
 read CMD2
 malloc CMD5
 write CMD5 566
@@ -42,4 +42,4 @@ write CMD3 41
 write CMD4 41
 
 
-work 38
+work 3800

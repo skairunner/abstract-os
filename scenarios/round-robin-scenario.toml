@@ -1,5 +1,5 @@
 [system]
-memory = 48
+memory = 32
 
 [[run_once]]
 name = 'bash'
@@ -7,59 +7,78 @@ script = 'bash.process'
 offset = 0
 
 [[run_once]]
-name = 'gcc'
-script = 'gcc.process'
-offset = 5
+name = 'ls'
+script = 'ls.process'
+offset = 100
 
 [[run_once]]
 name = 'gcc'
 script = 'gcc.process'
-offset = 5
+offset = 500
+
+[[run_once]]
+name = 'gcc'
+script = 'gcc.process'
+offset = 500
 
 [[run_once]]
 name = 'ls'
 script = 'ls.process'
-offset = 25
+offset = 2500
 
 [[run_once]]
 name = 'a.out'
 script = 'a.out.process'
-offset = 26
+offset = 3400
 
 [[run_once]]
 name = 'ls'
 script = 'ls.process'
-offset = 53
+offset = 5300
 
 [[run_once]]
 name = 'ls'
 script = 'ls.process'
-offset = 57
+offset = 5700
 
 [[run_once]]
 name = 'rm'
 script = 'rm.process'
-offset = 59
+offset = 5900
 
 [[run_once]]
 name = 'vim'
 script = 'emacs.process'
-offset = 60
+offset = 6000
+
+[[run_once]]
+name = 'gcc'
+script = 'gcc.process'
+offset = 8200
+
+[[run_once]]
+name = 'gcc'
+script = 'gcc.process'
+offset = 8210
+
+[[run_once]]
+name = 'a.out'
+script = 'a.out.process'
+offset = 8500
 
 
 [[run_every]]
 name = 'cron'
 script = 'cron.process'
-offset = 5
-interval = 12
-limit = 0
+offset = 5000
+interval = 5000
 
 
 [[run_rand]]
 name = 'usbmux'
 script = 'usbmux.process'
 offset = 0
-minimum = 0
-maximum = 90
-limit = 2
+minimum = 3000
+maximum = 9000
+limit = 5
 
